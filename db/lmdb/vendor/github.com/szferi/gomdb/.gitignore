@@ -20,13 +20,3 @@ _cgo_export.*
 _testmain.go
 
 *.exe
-*.test
-*.prof
-
-# git
-.git
-.git_mv
-
-# idea
-/*.iml
-/.idea
