@@ -1,2 +1,2 @@
-# nekoq-component-gpl
-extensions of nekoq, which are from GPL series projects
+# nekoq-component
+extensions of nekoq, which are from other projects
