@@ -60,3 +60,31 @@ func TestBasicUsage(t *testing.T) {
 
 	fmt.Println("info:", simpleDb)
 }
+
+func BenchmarkSimpleDbImpl_Get(b *testing.B) {
+	config := map[string]string{
+		"lmdb.database.dir": "/tmp/zzzztestdbdir",
+	}
+
+	dbapi, err := manager.GetDbApi("lmdb", config)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	simpleDb, err := dbapi.GetSimpleDb()
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, exists, err := simpleDb.Get([]byte("hello"))
+		if err != nil {
+			if exists {
+				b.Log("not exists.")
+			} else {
+				b.Fatal(err)
+			}
+		}
+	}
+}

@@ -10,11 +10,13 @@ import (
 
 const (
 	simpleDbNameString = "db:__simple_db__"
+	atomicDbNameString = "db:__atomic_db__"
 )
 
 type lmdbDbApiImpl struct {
 	env         *mdb.Env
 	simpleDbDbi mdb.DBI
+	atomicDbDbi mdb.DBI
 }
 
 var _ manager.DbApi = new(lmdbDbApiImpl)
@@ -41,20 +43,35 @@ func createDbApi(config map[string]string) (manager.DbApi, error) {
 		return nil, errorutil.NewNested("open env error -> lmdb -> db -> nekoq-component", err)
 	}
 
+	//========
 	txn, err := env.BeginTxn(nil, 0)
 	if err != nil {
 		env.Close()
-		return nil, errorutil.NewNested("initing error: begin txn -> lmdb -> db -> nekoq-component", err)
+		return nil, errorutil.NewNested("initing error: begin txn for simpledb -> lmdb -> db -> nekoq-component", err)
 	}
-
 	var nameStr = simpleDbNameString
 	dbi, err := txn.DBIOpen(&nameStr, mdb.CREATE)
 	if err != nil {
 		env.Close()
-		return nil, errorutil.NewNested("initing error: dbiOpen -> lmdb -> db -> nekoq-component", err)
+		return nil, errorutil.NewNested("initing error: dbiOpen for simpledb -> lmdb -> db -> nekoq-component", err)
 	}
 	txn.Commit()
 	lmdbImpl.simpleDbDbi = dbi
+	//========
+	txn, err = env.BeginTxn(nil, 0)
+	if err != nil {
+		env.Close()
+		return nil, errorutil.NewNested("initing error: begin txn for atomicdb -> lmdb -> db -> nekoq-component", err)
+	}
+	nameStr = atomicDbNameString
+	dbi, err = txn.DBIOpen(&nameStr, mdb.CREATE)
+	if err != nil {
+		env.Close()
+		return nil, errorutil.NewNested("initing error: dbiOpen for atomicdb -> lmdb -> db -> nekoq-component", err)
+	}
+	txn.Commit()
+	lmdbImpl.atomicDbDbi = dbi
+	//========
 
 	return lmdbImpl, nil
 }
@@ -65,4 +82,8 @@ func (this *lmdbDbApiImpl) GetSimpleDb() (db.SimpleDB, error) {
 
 func (this *lmdbDbApiImpl) CloseDbApi() error {
 	return this.env.Close()
+}
+
+func (this *lmdbDbApiImpl) GetAtomicDb() (db.AtomicDB, error) {
+	return createAtomicDb(this)
 }
