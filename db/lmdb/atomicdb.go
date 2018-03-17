@@ -3,7 +3,7 @@ package lmdb
 import (
 	"sync"
 
-	"import.moetang.info/go/nekoq-api/component/db"
+	"goimport.moetang.info/nekoq-api/component/db"
 
 	"github.com/szferi/gomdb"
 )

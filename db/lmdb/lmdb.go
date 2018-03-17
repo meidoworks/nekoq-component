@@ -1,7 +1,7 @@
 package lmdb
 
 import (
-	"import.moetang.info/go/nekoq-api/component/db/manager"
+	"goimport.moetang.info/nekoq-api/component/db/manager"
 )
 
 type lmdbDriverFactory struct {

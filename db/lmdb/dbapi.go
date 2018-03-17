@@ -1,9 +1,9 @@
 package lmdb
 
 import (
-	"import.moetang.info/go/nekoq-api/component/db"
-	"import.moetang.info/go/nekoq-api/component/db/manager"
-	"import.moetang.info/go/nekoq-api/errorutil"
+	"goimport.moetang.info/nekoq-api/component/db"
+	"goimport.moetang.info/nekoq-api/component/db/manager"
+	"goimport.moetang.info/nekoq-api/errorutil"
 
 	"github.com/szferi/gomdb"
 )

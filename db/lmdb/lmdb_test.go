@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"import.moetang.info/go/nekoq-api/component/db/manager"
-	_ "import.moetang.info/go/nekoq-component/db/lmdb"
+	"goimport.moetang.info/nekoq-api/component/db/manager"
+	_ "goimport.moetang.info/nekoq-component/db/lmdb"
 )
 
 func TestBasicUsage(t *testing.T) {

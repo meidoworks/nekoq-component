@@ -1,1 +1,1 @@
-package nekoq_component // import "import.moetang.info/go/nekoq-component"
+package nekoq_component // import "goimport.moetang.info/nekoq-component"
