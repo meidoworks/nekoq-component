@@ -17,7 +17,29 @@ type _DbConsistentQuorum interface {
 	Acquire(key, node string) (string, error)
 }
 
+type _DbConsistentWatch interface {
+	WatchFolder(folder string) (<-chan WatchEvent, CancelFn, error)
+}
+
 type ConsistentStore interface {
 	_DbConsistentKv
 	_DbConsistentQuorum
+	_DbConsistentWatch
 }
+
+type WatchEvent struct {
+	Path string
+	Ev   []struct {
+		Key       string
+		EventType WatchEventType
+	}
+}
+
+type WatchEventType int
+
+const (
+	WatchEventUnknown WatchEventType = iota
+	WatchEventCreated
+	WatchEventModified
+	WatchEventDelete
+)

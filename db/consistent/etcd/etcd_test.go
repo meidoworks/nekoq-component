@@ -100,3 +100,54 @@ func TestEtcdClient_LeaderAndAcquire(t *testing.T) {
 	t.Log("end")
 	runtime.KeepAlive(cli)
 }
+
+func TestEtcdClient_Watch(t *testing.T) {
+	cli, err := NewEtcdClient(&EtcdClientConfig{
+		Endpoints: []string{"127.0.0.1:2379"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func(cli *EtcdClient) {
+		_ = cli.Close()
+	}(cli)
+
+	ch, cancel, err := cli.WatchFolder("/hello")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	go func() {
+		for ev := range ch {
+			t.Log(ev)
+		}
+	}()
+
+	if err := cli.Set("/hello/a", "a"); err != nil {
+		t.Fatal(err)
+	}
+	if err := cli.Set("/hello/a", "b"); err != nil {
+		t.Fatal(err)
+	}
+	if err := cli.Set("/hello/b", "b"); err != nil {
+		t.Fatal(err)
+	}
+	if err := cli.Set("/hello/b", "a"); err != nil {
+		t.Fatal(err)
+	}
+	if err := cli.Set("/hellA", "a"); err != nil {
+		t.Fatal(err)
+	}
+	if err := cli.Del("/hello/b"); err != nil {
+		t.Fatal(err)
+	}
+	cancel()
+	if err := cli.Set("/hello/a", "a"); err != nil {
+		t.Fatal(err)
+	}
+	if err := cli.Del("/hello/"); err != nil {
+		t.Fatal(err)
+	}
+
+	time.Sleep(5 * time.Second)
+}

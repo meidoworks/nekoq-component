@@ -2,6 +2,7 @@ package etcd
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"go.etcd.io/etcd/client/v3"
@@ -17,8 +18,53 @@ type EtcdClient struct {
 	cli *clientv3.Client
 
 	settings struct {
-		LeaseTTL int64
+		WatchBufferSize int
+		LeaseTTL        int64
 	}
+}
+
+func (e *EtcdClient) WatchFolder(folder string) (<-chan component.WatchEvent, component.CancelFn, error) {
+	if !strings.HasSuffix(folder, "/") {
+		folder = folder + "/"
+	}
+	newCtx, cFn := context.WithCancel(context.Background())
+	watchChan := e.cli.Watch(newCtx, folder, clientv3.WithPrefix())
+	ch := make(chan component.WatchEvent, e.settings.WatchBufferSize)
+	go func() {
+		for {
+			select {
+			case <-newCtx.Done():
+				break
+			case ev, ok := <-watchChan:
+				if ok {
+					wev := &component.WatchEvent{}
+					wev.Path = folder
+					for _, ev := range ev.Events {
+						var evt component.WatchEventType
+						if ev.Type == clientv3.EventTypeDelete {
+							evt = component.WatchEventDelete
+						} else {
+							if ev.IsCreate() {
+								evt = component.WatchEventCreated
+							} else if ev.IsModify() {
+								evt = component.WatchEventModified
+							} else {
+								evt = component.WatchEventUnknown
+							}
+						}
+						wev.Ev = append(wev.Ev, struct {
+							Key       string
+							EventType component.WatchEventType
+						}{Key: string(ev.Kv.Key), EventType: evt})
+					}
+					ch <- *wev
+				} else {
+					break
+				}
+			}
+		}
+	}()
+	return ch, cFn, nil
 }
 
 func (e *EtcdClient) Leader(key string) (string, error) {
@@ -34,6 +80,15 @@ func (e *EtcdClient) Leader(key string) (string, error) {
 }
 
 func (e *EtcdClient) Acquire(key, node string) (string, error) {
+	// step0: read value first in order to avoid etcd cluster write
+	if res, err := e.cli.Get(context.Background(), key); err != nil {
+		return "", err
+	} else if res.Count > 0 {
+		remoteNodeId := string(res.Kvs[0].Value)
+		if remoteNodeId != node {
+			return remoteNodeId, nil
+		}
+	}
 	// step1: get lease
 	grant, err := e.cli.Grant(context.Background(), e.settings.LeaseTTL)
 	if err != nil {
@@ -111,9 +166,11 @@ func NewEtcdClient(config *EtcdClientConfig) (*EtcdClient, error) {
 	return &EtcdClient{
 		cli: cli,
 		settings: struct {
-			LeaseTTL int64
+			WatchBufferSize int
+			LeaseTTL        int64
 		}{
-			LeaseTTL: 5,
+			WatchBufferSize: 64,
+			LeaseTTL:        5,
 		},
 	}, nil
 }
