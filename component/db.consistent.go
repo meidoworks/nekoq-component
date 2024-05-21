@@ -8,16 +8,16 @@ type _DbConsistentKv interface {
 
 type _DbConsistentQuorum interface {
 	// Leader responds the current node id of the leader
-	Leader() (string, error)
+	Leader(key string) (string, error)
 	// Acquire tries to become the leader of the quorum
 	// Responding the current node id of the leader, even of which is not current node
 	// Note that this method may or may not block the process. It depends on the implementation.
 	// Please try an infinitive loop to ensure the leader acquisition.
 	// Acquisition success: parameter string == response string
-	Acquire(node string) (string, error)
+	Acquire(key, node string) (string, error)
 }
 
 type ConsistentStore interface {
 	_DbConsistentKv
-	//_DbConsistentQuorum
+	_DbConsistentQuorum
 }

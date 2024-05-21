@@ -15,6 +15,54 @@ type EtcdClientConfig struct {
 
 type EtcdClient struct {
 	cli *clientv3.Client
+
+	settings struct {
+		LeaseTTL int64
+	}
+}
+
+func (e *EtcdClient) Leader(key string) (string, error) {
+	if res, err := e.cli.Get(context.Background(), key); err != nil {
+		return "", err
+	} else {
+		if res.Count == 0 {
+			return "", nil
+		} else {
+			return string(res.Kvs[0].Value), nil
+		}
+	}
+}
+
+func (e *EtcdClient) Acquire(key, node string) (string, error) {
+	// step1: get lease
+	grant, err := e.cli.Grant(context.Background(), e.settings.LeaseTTL)
+	if err != nil {
+		return "", err
+	}
+	// step2: assemble txn statements
+	cmp := clientv3.Compare(clientv3.CreateRevision(key), "=", 0)
+	put := clientv3.OpPut(key, node, clientv3.WithLease(grant.ID))
+	// step3: atomically run put if not exists
+	if _, err := e.cli.Txn(context.Background()).If(cmp).Then(put).Commit(); err != nil {
+		return "", err
+	}
+	// step3: read value
+	if res, err := e.cli.Get(context.Background(), key); err != nil {
+		return "", err
+	} else {
+		if res.Count == 0 {
+			return "", nil
+		} else {
+			remoteNodeId := string(res.Kvs[0].Value)
+			if remoteNodeId == node {
+				// step4: keep alive the lease if lock is acquired
+				if _, err := e.cli.KeepAlive(context.Background(), grant.ID); err != nil {
+					return "", err
+				}
+			}
+			return remoteNodeId, nil
+		}
+	}
 }
 
 func (e *EtcdClient) Del(key string) error {
@@ -62,5 +110,10 @@ func NewEtcdClient(config *EtcdClientConfig) (*EtcdClient, error) {
 	}
 	return &EtcdClient{
 		cli: cli,
+		settings: struct {
+			LeaseTTL int64
+		}{
+			LeaseTTL: 5,
+		},
 	}, nil
 }
