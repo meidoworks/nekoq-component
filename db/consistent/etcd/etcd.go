@@ -30,6 +30,25 @@ func (e *EtcdClient) WatchFolder(folder string) (<-chan component.WatchEvent, co
 	newCtx, cFn := context.WithCancel(context.Background())
 	watchChan := e.cli.Watch(newCtx, folder, clientv3.WithPrefix())
 	ch := make(chan component.WatchEvent, e.settings.WatchBufferSize)
+
+	// fresh with the prefix
+	{
+		res, err := e.cli.Get(context.Background(), folder, clientv3.WithPrefix())
+		if err != nil {
+			cFn()
+			return nil, nil, err
+		}
+		wev := &component.WatchEvent{}
+		wev.Path = folder
+		for _, ev := range res.Kvs {
+			wev.Ev = append(wev.Ev, struct {
+				Key       string
+				EventType component.WatchEventType
+			}{Key: string(ev.Key), EventType: component.WatchEventFresh})
+		}
+		ch <- *wev
+	}
+
 	go func() {
 		for {
 			select {

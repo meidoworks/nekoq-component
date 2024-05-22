@@ -18,6 +18,13 @@ type _DbConsistentQuorum interface {
 }
 
 type _DbConsistentWatch interface {
+	// WatchFolder support watching a prefix
+	// After trigger this command, a full fresh of the prefix will be retrieved at once.
+	// Then any changes happen inside the prefix will be notified, including children change, children value change.
+	// List of possible changes:
+	// * Child creation
+	// * Child deletion
+	// * Child value change
 	WatchFolder(folder string) (<-chan WatchEvent, CancelFn, error)
 }
 
@@ -28,6 +35,7 @@ type ConsistentStore interface {
 }
 
 type WatchEvent struct {
+	// Path is the full path of the element
 	Path string
 	Ev   []struct {
 		Key       string
@@ -39,6 +47,7 @@ type WatchEventType int
 
 const (
 	WatchEventUnknown WatchEventType = iota
+	WatchEventFresh
 	WatchEventCreated
 	WatchEventModified
 	WatchEventDelete

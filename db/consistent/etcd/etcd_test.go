@@ -123,6 +123,7 @@ func TestEtcdClient_Watch(t *testing.T) {
 		}
 	}()
 
+	time.Sleep(1 * time.Second)
 	if err := cli.Set("/hello/a", "a"); err != nil {
 		t.Fatal(err)
 	}
@@ -141,6 +142,13 @@ func TestEtcdClient_Watch(t *testing.T) {
 	if err := cli.Del("/hello/b"); err != nil {
 		t.Fatal(err)
 	}
+	if err := cli.Set("/hello/c/ccc", "c"); err != nil {
+		t.Fatal(err)
+	}
+	if err := cli.Del("/hello/c/ccc"); err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(1 * time.Second)
 	cancel()
 	if err := cli.Set("/hello/a", "a"); err != nil {
 		t.Fatal(err)
