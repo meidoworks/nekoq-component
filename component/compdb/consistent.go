@@ -1,4 +1,6 @@
-package component
+package compdb
+
+import "github.com/meidoworks/nekoq-component/component/shared"
 
 type _DbConsistentKv interface {
 	Get(key string) (string, error)
@@ -25,7 +27,7 @@ type _DbConsistentWatch interface {
 	// * Child creation
 	// * Child deletion
 	// * Child value change
-	WatchFolder(folder string) (<-chan WatchEvent, CancelFn, error)
+	WatchFolder(folder string) (<-chan WatchEvent, shared.CancelFn, error)
 }
 
 type ConsistentStore interface {

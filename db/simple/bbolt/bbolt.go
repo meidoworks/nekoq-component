@@ -5,7 +5,7 @@ import (
 
 	"go.etcd.io/bbolt"
 
-	"github.com/meidoworks/nekoq-component/component"
+	"github.com/meidoworks/nekoq-component/component/compdb"
 )
 
 type bboltStoreTable struct {
@@ -54,7 +54,7 @@ func (b bboltStoreTable) ensureBucketInNewTxn(writable bool) (*bbolt.Tx, *bbolt.
 	}
 }
 
-func (b bboltStoreTable) QueryById(id []byte, empty component.SimpleStoreObject) (component.SimpleStoreObject, error) {
+func (b bboltStoreTable) QueryById(id []byte, empty compdb.SimpleStoreObject) (compdb.SimpleStoreObject, error) {
 	tx, bucket, err := b.ensureBucketInNewTxn(false)
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (b bboltStoreTable) QueryById(id []byte, empty component.SimpleStoreObject)
 	}
 }
 
-func (b bboltStoreTable) Insert(obj component.SimpleStoreObject) error {
+func (b bboltStoreTable) Insert(obj compdb.SimpleStoreObject) error {
 	// marshal object before starting new transaction in order to improve performance
 	data, err := obj.Marshal()
 	if err != nil {
@@ -93,7 +93,7 @@ func (b bboltStoreTable) Insert(obj component.SimpleStoreObject) error {
 
 	val := bucket.Get(id)
 	if val != nil {
-		return component.ErrDuplicatedObjectById
+		return compdb.ErrDuplicatedObjectById
 	}
 	if err := bucket.Put(id, data); err != nil {
 		return err
@@ -116,7 +116,7 @@ func (b bboltStoreTable) Delete(id []byte) error {
 	return tx.Commit()
 }
 
-func (b bboltStoreTable) Update(obj component.SimpleStoreObject) error {
+func (b bboltStoreTable) Update(obj compdb.SimpleStoreObject) error {
 	id := obj.Id()
 	data, err := obj.Marshal()
 	if err != nil {
@@ -145,7 +145,7 @@ type BboltStore struct {
 	db *bbolt.DB
 }
 
-func (b *BboltStore) Table(table string) component.SimpleStoreTable {
+func (b *BboltStore) Table(table string) compdb.SimpleStoreTable {
 	return bboltStoreTable{
 		tableName: []byte(table),
 		db:        b.db,
@@ -156,7 +156,7 @@ func (b *BboltStore) Close() error {
 	return b.db.Close()
 }
 
-var _ component.SimpleStore = new(BboltStore)
+var _ compdb.SimpleStore = new(BboltStore)
 
 func NewBboltStore(cfg *BboltStoreConfig) (*BboltStore, error) {
 	db, err := bbolt.Open(cfg.Path, 0600, nil)

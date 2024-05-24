@@ -7,7 +7,8 @@ import (
 
 	"go.etcd.io/etcd/client/v3"
 
-	"github.com/meidoworks/nekoq-component/component"
+	"github.com/meidoworks/nekoq-component/component/compdb"
+	"github.com/meidoworks/nekoq-component/component/shared"
 )
 
 type EtcdClientConfig struct {
@@ -23,13 +24,13 @@ type EtcdClient struct {
 	}
 }
 
-func (e *EtcdClient) WatchFolder(folder string) (<-chan component.WatchEvent, component.CancelFn, error) {
+func (e *EtcdClient) WatchFolder(folder string) (<-chan compdb.WatchEvent, shared.CancelFn, error) {
 	if !strings.HasSuffix(folder, "/") {
 		folder = folder + "/"
 	}
 	newCtx, cFn := context.WithCancel(context.Background())
 	watchChan := e.cli.Watch(newCtx, folder, clientv3.WithPrefix())
-	ch := make(chan component.WatchEvent, e.settings.WatchBufferSize)
+	ch := make(chan compdb.WatchEvent, e.settings.WatchBufferSize)
 
 	// fresh with the prefix
 	{
@@ -38,13 +39,13 @@ func (e *EtcdClient) WatchFolder(folder string) (<-chan component.WatchEvent, co
 			cFn()
 			return nil, nil, err
 		}
-		wev := &component.WatchEvent{}
+		wev := &compdb.WatchEvent{}
 		wev.Path = folder
 		for _, ev := range res.Kvs {
 			wev.Ev = append(wev.Ev, struct {
 				Key       string
-				EventType component.WatchEventType
-			}{Key: string(ev.Key), EventType: component.WatchEventFresh})
+				EventType compdb.WatchEventType
+			}{Key: string(ev.Key), EventType: compdb.WatchEventFresh})
 		}
 		ch <- *wev
 	}
@@ -56,24 +57,24 @@ func (e *EtcdClient) WatchFolder(folder string) (<-chan component.WatchEvent, co
 				break
 			case ev, ok := <-watchChan:
 				if ok {
-					wev := &component.WatchEvent{}
+					wev := &compdb.WatchEvent{}
 					wev.Path = folder
 					for _, ev := range ev.Events {
-						var evt component.WatchEventType
+						var evt compdb.WatchEventType
 						if ev.Type == clientv3.EventTypeDelete {
-							evt = component.WatchEventDelete
+							evt = compdb.WatchEventDelete
 						} else {
 							if ev.IsCreate() {
-								evt = component.WatchEventCreated
+								evt = compdb.WatchEventCreated
 							} else if ev.IsModify() {
-								evt = component.WatchEventModified
+								evt = compdb.WatchEventModified
 							} else {
-								evt = component.WatchEventUnknown
+								evt = compdb.WatchEventUnknown
 							}
 						}
 						wev.Ev = append(wev.Ev, struct {
 							Key       string
-							EventType component.WatchEventType
+							EventType compdb.WatchEventType
 						}{Key: string(ev.Kv.Key), EventType: evt})
 					}
 					ch <- *wev
@@ -172,7 +173,7 @@ func (e *EtcdClient) Close() error {
 	return e.cli.Close()
 }
 
-var _ component.ConsistentStore = new(EtcdClient)
+var _ compdb.ConsistentStore = new(EtcdClient)
 
 func NewEtcdClient(config *EtcdClientConfig) (*EtcdClient, error) {
 	cli, err := clientv3.New(clientv3.Config{

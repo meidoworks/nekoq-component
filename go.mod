@@ -3,6 +3,7 @@ module github.com/meidoworks/nekoq-component
 go 1.22.0
 
 require (
+	github.com/go-chi/chi/v5 v5.0.12
 	go.etcd.io/bbolt v1.3.10
 	go.etcd.io/etcd/client/v3 v3.5.13
 )
