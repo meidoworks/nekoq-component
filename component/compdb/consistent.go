@@ -6,6 +6,7 @@ type _DbConsistentKv interface {
 	Get(key string) (string, error)
 	Set(key string, val string) error
 	Del(key string) error
+	SetIfNotExists(key string, val string) error
 }
 
 type _DbConsistentQuorum interface {

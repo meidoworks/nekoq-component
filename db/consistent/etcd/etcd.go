@@ -169,6 +169,16 @@ func (e *EtcdClient) Set(key string, val string) error {
 	return nil
 }
 
+func (e *EtcdClient) SetIfNotExists(key string, val string) error {
+	cmp := clientv3.Compare(clientv3.CreateRevision(key), "=", 0)
+	put := clientv3.OpPut(key, val)
+	// atomically run put if not exists
+	if _, err := e.cli.Txn(context.Background()).If(cmp).Then(put).Commit(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (e *EtcdClient) Close() error {
 	return e.cli.Close()
 }

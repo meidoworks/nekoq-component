@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/meidoworks/nekoq-component/component/comphttp"
 )
@@ -74,6 +75,8 @@ var _ comphttp.HttpApiSet[*http.Request, http.ResponseWriter] = new(ChiHttpApiSe
 
 func NewChiHttpApiServer(cfg *ChiHttpApiServerConfig) *ChiHttpApiServer {
 	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 	return &ChiHttpApiServer{
 		chiRouter: r,
 		cfg:       cfg,
