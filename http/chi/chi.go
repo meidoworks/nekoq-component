@@ -2,6 +2,7 @@ package chi
 
 import (
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 
@@ -33,6 +34,13 @@ type ChiHttpApiServer struct {
 
 func (c *ChiHttpApiServer) StartServing() error {
 	return http.ListenAndServe(c.cfg.Addr, c.chiRouter)
+}
+
+func (c *ChiHttpApiServer) StartServicingOn(l net.Listener) error {
+	srv := http.Server{
+		Handler: c.chiRouter,
+	}
+	return srv.Serve(l)
 }
 
 func (c *ChiHttpApiServer) DefaultErrorHandler(err error) comphttp.ResponseHandler[http.ResponseWriter] {
@@ -77,6 +85,7 @@ func NewChiHttpApiServer(cfg *ChiHttpApiServerConfig) *ChiHttpApiServer {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(middleware.RealIP)
 	return &ChiHttpApiServer{
 		chiRouter: r,
 		cfg:       cfg,
