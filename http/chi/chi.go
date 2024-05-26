@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -48,16 +49,10 @@ func (c *ChiHttpApiServer) DefaultErrorHandler(err error) comphttp.ResponseHandl
 }
 
 func (c *ChiHttpApiServer) AddHttpApi(a comphttp.HttpApi[*http.Request, http.ResponseWriter]) error {
-	u, err := url.Parse(a.ParentUrl() + "/" + a.Url())
+	fullPath, err := c.mappingUrl(a)
 	if err != nil {
 		return err
 	}
-	base, err := url.Parse("/")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fullPath := base.ResolveReference(u).Path
 
 	for _, method := range a.HttpMethod() {
 		c.chiRouter.MethodFunc(method, fullPath, func(writer http.ResponseWriter, request *http.Request) {
@@ -77,6 +72,24 @@ func (c *ChiHttpApiServer) AddHttpApi(a comphttp.HttpApi[*http.Request, http.Res
 
 	c.handlerList = append(c.handlerList, a)
 	return nil
+}
+
+func (*ChiHttpApiServer) mappingUrl(a comphttp.HttpApi[*http.Request, http.ResponseWriter]) (string, error) {
+	separator := ""
+	if !strings.HasPrefix(a.Url(), "/") {
+		separator = "/"
+	}
+	u, err := url.Parse(a.ParentUrl() + separator + a.Url())
+	if err != nil {
+		return "", err
+	}
+	base, err := url.Parse("/")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fullPath := base.ResolveReference(u).Path
+	return fullPath, nil
 }
 
 var _ comphttp.HttpApiSet[*http.Request, http.ResponseWriter] = new(ChiHttpApiServer)
