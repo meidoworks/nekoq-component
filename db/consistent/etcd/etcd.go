@@ -200,7 +200,7 @@ func NewEtcdClient(config *EtcdClientConfig) (*EtcdClient, error) {
 			LeaseTTL        int64
 		}{
 			WatchBufferSize: 64,
-			LeaseTTL:        5,
+			LeaseTTL:        3,
 		},
 	}, nil
 }
