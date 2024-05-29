@@ -28,6 +28,7 @@ type _DbConsistentWatch interface {
 	// * Child creation
 	// * Child deletion
 	// * Child value change
+	// Note: If folder does not end up with '/', the char '/' will be automatically added. In order to avoid unexpected key with the same prefix.
 	WatchFolder(folder string) (<-chan WatchEvent, shared.CancelFn, error)
 }
 
