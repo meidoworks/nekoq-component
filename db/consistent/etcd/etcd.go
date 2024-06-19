@@ -99,6 +99,10 @@ func (e *EtcdClient) Leader(key string) (string, error) {
 	}
 }
 
+func (e *EtcdClient) TryAcquire(key, node string) (string, error) {
+	return e.Acquire(key, node)
+}
+
 func (e *EtcdClient) Acquire(key, node string) (string, error) {
 	// step0: read value first in order to avoid etcd cluster write
 	if res, err := e.cli.Get(context.Background(), key); err != nil {

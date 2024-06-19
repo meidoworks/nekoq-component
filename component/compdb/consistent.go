@@ -18,6 +18,8 @@ type _DbConsistentQuorum interface {
 	// Please try an infinitive loop to ensure the leader acquisition.
 	// Acquisition success: parameter string == response string
 	Acquire(key, node string) (string, error)
+	// TryAcquire is identical to Acquire method except it will not block the following process
+	TryAcquire(key, node string) (string, error)
 }
 
 type _DbConsistentWatch interface {
