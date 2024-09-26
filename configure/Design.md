@@ -1,6 +1,6 @@
 # Configuration
 
-### Concepts
+### 1. Concepts
 
 ##### Configuration
 
@@ -16,6 +16,7 @@ Key Data fields:
 
 * Value
 * Signature
+* Timestamp - (unix timestamp in seconds)the effective time(create/update) of this configuration
 
 ##### Selector
 
@@ -28,6 +29,7 @@ Valid characters of the selector fields are:
 * Alphabets - [A-Za-z]
 * Numbers - [0-9]
 * Underscore - [_]
+* Dot - [.]
 
 `Bahavior of Selectors:`
 
@@ -49,8 +51,11 @@ The matching rules are identical to standard Selector with extra requirements:
 
 1. There should be only one configuration instance for the combination of [group, key]. The other fields should not be
    used for configuration identification on client side.
+2. **Design for failing fast**. Since configurations are extremely important for correctness, any situation that the
+   client could not get desired configuration will lead failure on server and client. This includes configure not
+   existing or selector matching rule.
 
-### Features
+### 2. Features
 
 ##### API features
 
@@ -63,6 +68,7 @@ The matching rules are identical to standard Selector with extra requirements:
 * [ ] Isolations for environments, areas, purposes
 * [ ] Configuration authorization
 * [ ] Local fallback storage
+* [ ] Configuration alternatives - env, parameter, file
 * [ ] General and simple protocols for multiple programming languages
 * [ ] Configuration encryption
 * [ ] Low resource cost and high throughput
@@ -73,19 +79,119 @@ The matching rules are identical to standard Selector with extra requirements:
 * [ ] Server: https support
 * [ ] Server: auth support
 * [ ] Configuration reference for between different selector combinations
+    * In order to support flexible configuration access and sharing
+    * Support in management portal rather than client and server, meaning that no special changes to the protocol.
+* [ ] Crypto alg for auth and encryption: rsa2048, ecdsa256, rsa4096, ecdsa384, ecdsa521
+* [ ] Nested configure server architecture for scalable capacity
 
 ##### Advanced client features
 
 * [ ] Go: on change event callback
+* [ ] Allow retrieving configurations from multiple selectors via different client instance options
+    * Best practise: reduce the number of clients in this scenario to reduce the workload of the server.
 
-### References
+### 3. Design
 
-##### A. Ways of beta / blue-green / canary / etc.
+#### 3.1 Server API
+
+##### 3.1.1 Post /retrieving => Retrieve and listen configurations
+
+* Request Headers:
+
+```text
+Request Id header(Optional):
+X-Request-Id
+
+General http proxy headers(ordered):
+True-Client-IP
+X-Real-IP
+X-Forwarded-For
+
+MIME header:
+Accept = application/cbor
+```
+
+* Request body: cbor encoded request
+
+* Response status
+
+```text
+200 = success
+304 = no update configuration within timeout
+400 = bad information in header or/and body
+404 = one or more configuration keys are not found
+406 = accept header invalid
+500 = internal error while processing request
+```
+
+* Response headers:
+
+```text
+MIME header:
+Content-Type = application/cbor
+```
+
+* Response body:
+    * 200 = cbor encoded response
+    * 304 = (empty)
+    * 400 = (optional)cbor encoded error info
+    * 404 = (optional)existence of each configuration requested. information only rather than structural data. should
+      not be used.
+    * 406 = (empty)
+    * 500 = (optional)cbor encoded error info
+    * undefined responses beyond the above scenarios even with status codes = 400,404,500
+
+##### 3.1.2 Get /configure/{group}/{key} => Get specific configuration
+
+* Request Headers:
+
+```text
+Request Id header(Optional):
+X-Request-Id
+
+General http proxy headers(ordered):
+True-Client-IP
+X-Real-IP
+X-Forwarded-For
+
+MIME header:
+Accept = application/cbor
+
+Configure server required headers:
+X-Configuration-Sel = (selectors data)
+X-Configuration-Opt-Sel = (optional selectors data)
+```
+
+* Response status:
+
+```text
+200 = success
+400 = bad information in header or/and body
+404 = configuration key are not found
+406 = accept header invalid
+500 = internal error while processing request
+```
+
+* Response headers:
+
+```text
+MIME header:
+Content-Type = application/cbor
+```
+
+* Response body:
+    * 406 = (empty)
+    * otherwise: cbor encoded response
+    * undefined responses beyond the known scenarios even with status codes = 400,404,500
+
+### A. References
+
+##### A.1 Ways of beta / blue-green / canary / etc.
 
 1. Select part of the existing instances as candidates - pros. real time effective
 2. Create new instances as candidates - pros. fresh new instance
 
-### Dependencies
+### B. Dependencies
 
 ##### Basic
 
