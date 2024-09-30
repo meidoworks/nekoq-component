@@ -18,6 +18,13 @@ Key Data fields:
 * Signature
 * Timestamp - (unix timestamp in seconds)the effective time(create/update) of this configuration
 
+Valid characters of 'group', 'key' fields:
+
+* Alphabets - [A-Za-z]
+* Numbers - [0-9]
+* Underscore - [_]
+* Dot - [.]
+
 ##### Selector
 
 Selector is the core functionality for filtering out desired configurations.
@@ -83,6 +90,7 @@ The matching rules are identical to standard Selector with extra requirements:
     * Support in management portal rather than client and server, meaning that no special changes to the protocol.
 * [ ] Crypto alg for auth and encryption: rsa2048, ecdsa256, rsa4096, ecdsa384, ecdsa521
 * [ ] Nested configure server architecture for scalable capacity
+* [ ] Data lazy loading to reduce memory usage
 
 ##### Advanced client features
 
