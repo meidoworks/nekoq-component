@@ -183,8 +183,10 @@ Overall:
 		PumpLoop:
 			for i := 0; i < maxCnt; i++ {
 				select {
-				case ev := <-ch:
-					events = append(events, ev)
+				case ev, ok := <-ch:
+					if ok {
+						events = append(events, ev)
+					}
 				default:
 					break PumpLoop
 				}
@@ -201,7 +203,20 @@ Overall:
 			// apply change events
 			s.rwlock.Lock()
 			defer s.rwlock.Unlock()
-			//FIXME dedup and merge events
+			// dedup and merge events
+			dedupFn := func() {
+				dedupMap := make(map[string]configapi.Event)
+				for _, ev := range events {
+					key := ev.Configuration.Group + "||" + ev.Configuration.Key
+					dedupMap[key] = ev
+				}
+				var newEvents []configapi.Event
+				for _, v := range events {
+					newEvents = append(newEvents, v)
+				}
+				events = newEvents
+			}
+			dedupFn()
 			for _, ev := range events {
 				if ev.Created || ev.Modified {
 					store := s.selectorsMap.GetOrCreateSelectorsGeneral(configapi.SelectorsHelperCacheValue(&ev.Configuration.Selectors), configapi.SelectorsHelperCacheValue(&ev.Configuration.OptionalSelectors))
@@ -226,13 +241,18 @@ Overall:
 }
 
 func (s *server) Startup() error {
+	if err := s.pump.Startup(); err != nil {
+		return err
+	}
 	s.dumpFromPump()
 	go s.pumpLoop()
 	return nil
 }
 
 func (s *server) Shutdown() error {
-	s.pump.Stop()
+	if err := s.pump.Stop(); err != nil {
+		return err
+	}
 	close(s.closeCh)
 	return nil
 }

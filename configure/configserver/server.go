@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -42,6 +43,8 @@ type ConfigureServer struct {
 
 	server *server
 	opt    ConfigureOptions
+
+	httpServer *http.Server
 }
 
 func (c *ConfigureServer) logError(messsage string, err error) {
@@ -210,10 +213,28 @@ func (c *ConfigureServer) Startup() error {
 	if err := c.server.Startup(); err != nil {
 		return err
 	}
+	l, err := net.Listen("tcp", c.opt.Addr)
+	if err != nil {
+		return err
+	}
+	// startup http server
+	srv := &http.Server{Handler: c.readMux}
+	c.httpServer = srv
+	go func() {
+		if err := srv.Serve(l); err != nil {
+			if !errors.Is(err, http.ErrServerClosed) {
+				panic(err)
+			}
+		}
+	}()
 	return nil
 }
 
 func (c *ConfigureServer) Shutdown() error {
+	// stop http server
+	if err := c.httpServer.Close(); err != nil {
+		return err
+	}
 	if err := c.server.Shutdown(); err != nil {
 		return err
 	}

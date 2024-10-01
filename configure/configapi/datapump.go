@@ -9,7 +9,8 @@ type Event struct {
 }
 
 type DataPump interface {
-	Stop()
+	Startup() error
+	Stop() error
 	EventChannel() <-chan Event
 	TriggerDumpToChannel() <-chan Event
 }

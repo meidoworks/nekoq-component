@@ -10,7 +10,12 @@ import (
 type PreparedDataPump struct {
 }
 
-func (p PreparedDataPump) Stop() {
+func (p PreparedDataPump) Stop() error {
+	return nil
+}
+
+func (p PreparedDataPump) Startup() error {
+	return nil
 }
 
 func (p PreparedDataPump) EventChannel() <-chan configapi.Event {
@@ -145,7 +150,12 @@ func newUpdateDataPump() UpdateDataPump {
 	}
 }
 
-func (u UpdateDataPump) Stop() {
+func (u UpdateDataPump) Stop() error {
+	return nil
+}
+
+func (u UpdateDataPump) Startup() error {
+	return nil
 }
 
 func (u UpdateDataPump) EventChannel() <-chan configapi.Event {
