@@ -80,6 +80,8 @@ type Client struct {
 	requests     *configapi.AcquireConfigurationReq
 	reqCallbacks map[string]func(cfg configapi.Configuration)
 
+	client *http.Client
+
 	closeCh chan struct{}
 }
 
@@ -90,6 +92,9 @@ func NewClient(serverList []string, opt ClientOptions) *Client {
 		requests:     &configapi.AcquireConfigurationReq{},
 		reqCallbacks: map[string]func(cfg configapi.Configuration){},
 		closeCh:      make(chan struct{}, 1),
+		client: &http.Client{
+			Timeout: 2 * 60 * time.Second, // two times of default wait time(60s) on server side
+		},
 	}
 	c.requests.Selectors = opt.ToSelectors()
 	c.requests.OptionalSelectors = opt.ToOptSelectors()
@@ -106,12 +111,16 @@ func (c *Client) AddConfigurationRequirement(req RequiredConfig) {
 	if c.lockRequests.Load() {
 		panic(errors.New("invalid adding configuration requirement after lock"))
 	}
+	ckey := GetConfigurationKey(req.Required)
+	if _, ok := c.reqCallbacks[ckey]; ok {
+		panic(errors.New("duplicate configuration requirement"))
+	}
 	c.requests.Requested = append(c.requests.Requested, configapi.RequestedConfigurationKey{
 		Group:   req.Required.Group,
 		Key:     req.Required.Key,
 		Version: req.Required.Version,
 	})
-	c.reqCallbacks[GetConfigurationKey(req.Required)] = req.Callback
+	c.reqCallbacks[ckey] = req.Callback
 }
 
 func (c *Client) StartClient() error {
@@ -185,6 +194,14 @@ func (c *Client) StopClient() error {
 	return nil
 }
 
+func (c *Client) suspend() {
+	c.lockRequests.Store(false)
+}
+
+func (c *Client) resume() {
+	c.lockRequests.Store(true)
+}
+
 func GetConfigurationSync() {
 	//TODO get at once
 }
@@ -209,7 +226,7 @@ func (c *Client) sendRetrieveRequest() (*configapi.AcquireConfigurationRes, erro
 		return nil, err
 	}
 	req.Header.Add("Accept", "application/cbor")
-	res, err := http.DefaultClient.Do(req)
+	res, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}

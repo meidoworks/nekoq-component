@@ -20,6 +20,7 @@ TBD
     * cbor protocol for data marshalling
 * [x] Server: http support
 * [x] Server: sample cfgserver built on postgresql
+* [x] Client: Support *struct as dynamic configure container by ClientAdv
 * [ ] Performance: Low resource cost and high throughput
 * [ ] Configuration management for history restoring, beta application
 * [ ] Configuration authorization
