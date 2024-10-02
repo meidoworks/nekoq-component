@@ -122,7 +122,7 @@ func (c *ConfigureServer) handleRetrieveAndListen(w http.ResponseWriter, r *http
 				}
 			}
 			accumulated = append(accumulated, *obj.Configuration)
-			obj, ok = <-ch
+			obj, ok = <-ch // no need to check timer since any update will cause the channel to be closed
 		}
 	case <-timer.C:
 		w.WriteHeader(http.StatusNotModified)

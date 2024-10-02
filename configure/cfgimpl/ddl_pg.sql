@@ -36,4 +36,4 @@ comment on column configuration_history.cfg_operation is '0-add, 1-update, 2-del
 create sequence cfg_seq increment by 16 minvalue 1 maxvalue 9223372036854775807 start 1 cache 1 no cycle;
 
 -- add more tables to support selector hierarchy
--- Note1: sequence field will not guarantee strict order, which means there will be event loss from data pump if the field is used for retrieving updates.
+-- Note1: 'sequence' field will not guarantee strict order, which means there will be event loss from data pump if the field is used for retrieving updates.

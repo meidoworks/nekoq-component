@@ -7,6 +7,7 @@ Extensions of NekoQ, imported from external projects
 * [DB Consistent] etcd implementation
 * [DB Simple] bbolt implementation
 * [Http] chi implementation
+* [Configuration] configuration server/client lib and sample server
 
 ### 2. Todo List
 

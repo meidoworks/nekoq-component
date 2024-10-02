@@ -1,6 +1,51 @@
 # Configuration
 
-### 1. Concepts
+### 0. Get Started
+
+TBD
+
+### 1. Features
+
+##### API features
+
+* [x] Get configuration via [group, key]
+* [x] Poll configurations via [group, key, version] for dynamic reloading
+
+##### Advanced features
+
+* [x] Common: Isolations for environments, areas, purposes
+    * via Selectors
+* [X] Common: General and simple protocols for multiple programming languages
+    * http protocol for communication
+    * cbor protocol for data marshalling
+* [x] Server: http support
+* [x] Server: sample cfgserver built on postgresql
+* [ ] Performance: Low resource cost and high throughput
+* [ ] Configuration management for history restoring, beta application
+* [ ] Configuration authorization
+* [ ] Local fallback storage
+* [ ] Configuration alternatives - env, parameter, file
+* [ ] Configuration encryption
+* [ ] Extension APIs for customization: local file storage provider, customization storage provider
+* [ ] Separate APIs for retrieving and writing operations
+* [ ] Statistics of clients including configure using, client info, client address
+* [ ] Server: https support
+* [ ] Server: auth support
+* [ ] Configuration reference for between different selector combinations
+    * In order to support flexible configuration access and sharing
+    * Support in management portal rather than client and server, meaning that no special changes to the protocol.
+* [ ] Crypto alg for auth and encryption: rsa2048, ecdsa256, rsa4096, ecdsa384, ecdsa521
+* [ ] Nested configure server architecture for scalable capacity
+* [ ] Data lazy loading to reduce memory usage
+
+##### Advanced client features
+
+* [ ] Go: on change event callback
+* [ ] Go: retrieve full dump configurations periodically
+* [x] Allow retrieving configurations from multiple selectors via different client instance options
+    * Best practise: reduce the number of clients in this scenario to reduce the workload of the server.
+
+### 2. Concepts
 
 ##### Configuration
 
@@ -61,42 +106,6 @@ The matching rules are identical to standard Selector with extra requirements:
 2. **Design for failing fast**. Since configurations are extremely important for correctness, any situation that the
    client could not get desired configuration will lead failure on server and client. This includes configure not
    existing or selector matching rule.
-
-### 2. Features
-
-##### API features
-
-* [ ] Get configuration via [group, key]
-* [ ] Poll configurations via [group, key, version] for dynamic reloading
-
-##### Advanced features
-
-* [ ] Configuration management for history restoring, beta application
-* [ ] Isolations for environments, areas, purposes
-* [ ] Configuration authorization
-* [ ] Local fallback storage
-* [ ] Configuration alternatives - env, parameter, file
-* [ ] General and simple protocols for multiple programming languages
-* [ ] Configuration encryption
-* [ ] Low resource cost and high throughput
-* [ ] Extension APIs for customization: local file storage provider, customization storage provider
-* [ ] Separate APIs for retrieving and writing operations
-* [ ] Statistics of clients including configure using, client info, client address
-* [ ] Server: http support
-* [ ] Server: https support
-* [ ] Server: auth support
-* [ ] Configuration reference for between different selector combinations
-    * In order to support flexible configuration access and sharing
-    * Support in management portal rather than client and server, meaning that no special changes to the protocol.
-* [ ] Crypto alg for auth and encryption: rsa2048, ecdsa256, rsa4096, ecdsa384, ecdsa521
-* [ ] Nested configure server architecture for scalable capacity
-* [ ] Data lazy loading to reduce memory usage
-
-##### Advanced client features
-
-* [ ] Go: on change event callback
-* [ ] Allow retrieving configurations from multiple selectors via different client instance options
-    * Best practise: reduce the number of clients in this scenario to reduce the workload of the server.
 
 ### 3. Design
 
@@ -199,11 +208,19 @@ Content-Type = application/cbor
 1. Select part of the existing instances as candidates - pros. real time effective
 2. Create new instances as candidates - pros. fresh new instance
 
+##### A.2 Reason to choose cbor as first supported encoding
+
+1. Schemaless: flexible and avoid dependency issue
+2. Speed: depending on protocol and implementation
+3. Compatibility: support various languages and platforms
+4. Security: safe marshalling
+5. Support: community support
+6. Standard: protocol standard
+
 ### B. Dependencies
 
 ##### Basic
 
 * [github.com/fxamacker/cbor/v2](github.com/fxamacker/cbor/v2)
 * [github.com/go-chi/chi/v5](github.com/go-chi/chi/v5)
-
 

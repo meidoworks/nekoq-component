@@ -74,6 +74,7 @@ func (s *server) RetrieveOrWait(req *configapi.AcquireConfigurationReq) (NotifyC
 				Configuration: cfg,
 			}
 		}
+		close(ch)
 		return ch, func() {}, nil
 	}
 
@@ -136,6 +137,7 @@ func (s *server) RetrieveOrWait(req *configapi.AcquireConfigurationReq) (NotifyC
 				Configuration: v,
 			}
 		}
+		close(ch)
 		return ch, func() {}, nil
 	} else {
 		return ch, cfn, nil

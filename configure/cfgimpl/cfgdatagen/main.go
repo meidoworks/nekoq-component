@@ -33,7 +33,7 @@ func main() {
 		Signature: "testsig1",
 		Selectors: configapi.Selectors{
 			Data: map[string]string{
-				"dataccenter": "dc1",
+				"dc": "dc1",
 			},
 		},
 		OptionalSelectors: configapi.Selectors{},
