@@ -203,11 +203,15 @@ func (d *DatabaseDataPump) queryMaxSequence(c *pgxpool.Conn) (int64, error) {
 	if !rows.Next() {
 		return 0, nil
 	}
-	var maxId int64
+	var maxId *int64
 	if err := rows.Scan(&maxId); err != nil {
 		return 0, err
 	}
-	return maxId, nil
+	// if no record, nil will be retrieved
+	if maxId == nil {
+		return 0, nil
+	}
+	return *maxId, nil
 }
 
 func (d *DatabaseDataPump) queryConfigurations(startExcluded int64, maxIdIncluded int64, c *pgxpool.Conn) (res []struct {

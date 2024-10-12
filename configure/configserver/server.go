@@ -221,6 +221,7 @@ func (c *ConfigureServer) Startup() error {
 	srv := &http.Server{Handler: c.readMux}
 	c.httpServer = srv
 	go func() {
+		log.Println("ConfigureServer starting...")
 		if err := srv.Serve(l); err != nil {
 			if !errors.Is(err, http.ErrServerClosed) {
 				panic(err)
