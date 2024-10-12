@@ -2,6 +2,7 @@ package configclient
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -33,9 +34,10 @@ func TestClientAdv_Basic1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var _ = newCfg
+	var _ = newCfg.Load().(*TestStruct)
 	for i := 0; i < 30; i++ {
 		time.Sleep(1 * time.Second)
+		cfg := newCfg.Load().(*TestStruct)
 		// try 5 times to wait for result
 		t.Log(*cfg)
 		if cfg.Str != "test string" {
@@ -71,4 +73,23 @@ func TestClientAdv_CheckStructPtr(t *testing.T) {
 	if !checkStructPtr(t3) {
 		t.Fatal(errors.New("t3 is struct ptr"))
 	}
+}
+
+func TestClientAdv_GetStructType(t *testing.T) {
+	tt := new(TestStruct)
+	tp := getStructType(tt)
+	t.Log(tp)
+	if tp.Kind() != reflect.Struct {
+		t.Fatal(errors.New("struct expected"))
+	}
+}
+
+func TestClientAdv_NewStructPtr(t *testing.T) {
+	tt := new(TestStruct)
+	newInst := newStructPtr(getStructType(tt))
+	elem, ok := newInst.(*TestStruct)
+	if !ok {
+		t.Fatal(errors.New("struct ptr expected"))
+	}
+	t.Log(elem)
 }

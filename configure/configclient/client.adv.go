@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
+	"sync/atomic"
 
 	"github.com/meidoworks/nekoq-component/configure/configapi"
 )
@@ -18,14 +19,21 @@ func NewClientAdv(c *Client) *ClientAdv {
 	return &ClientAdv{c: c}
 }
 
-func (c *ClientAdv) RegisterJsonContainer(group, key string, container any) (any, error) {
+// RegisterJsonContainer will register auto updated configure container with json configure support
+// Note: the behavior is the same as Register method
+func (c *ClientAdv) RegisterJsonContainer(group, key string, container any) (*atomic.Value, error) {
 	return c.Register(group, key, json.Unmarshal, container)
 }
 
-func (c *ClientAdv) Register(group, key string, unmarshaler Unmarshaler, container any) (any, error) {
+// Register will register auto updated configure container with the same type as the container provided
+// Note that any further update has to be accessed via responded container rather than the container provided in the parameter
+func (c *ClientAdv) Register(group, key string, unmarshaler Unmarshaler, container any) (*atomic.Value, error) {
 	if !checkStructPtr(container) {
 		return nil, errors.New("container parameter should be '*struct' type")
 	}
+	structType := getStructType(container)
+	result := new(atomic.Value)
+	result.Store(newStructPtr(structType))
 	c.c.suspend()
 	defer c.c.resume()
 
@@ -35,16 +43,18 @@ func (c *ClientAdv) Register(group, key string, unmarshaler Unmarshaler, contain
 			Key:   key,
 		},
 		Callback: func(cfg configapi.Configuration) {
-			//FIXME this may have concurrent issue while both unmarshalling and reading could happen at the same time
-			if err := unmarshaler(cfg.Value, container); err != nil {
+			newInst := newStructPtr(structType)
+			if err := unmarshaler(cfg.Value, newInst); err != nil {
 				//FIXME need better solution to alert callback error
 				// guarantee changes are applied successfully before start using container as configure
 				c.c.logError("unmarshal ClientAdv change failed", err)
+			} else {
+				result.Store(newInst)
 			}
 		},
 	})
 
-	return container, nil
+	return result, nil
 }
 
 func checkStructPtr(c any) bool {
@@ -56,4 +66,13 @@ func checkStructPtr(c any) bool {
 		return false
 	}
 	return true
+}
+
+func getStructType(c any) reflect.Type {
+	t := reflect.TypeOf(c)
+	return t.Elem()
+}
+
+func newStructPtr(st reflect.Type) any {
+	return reflect.New(st).Interface()
 }
