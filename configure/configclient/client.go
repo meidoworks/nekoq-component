@@ -2,6 +2,7 @@ package configclient
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -16,6 +17,10 @@ import (
 	"github.com/fxamacker/cbor/v2"
 
 	"github.com/meidoworks/nekoq-component/configure/configapi"
+)
+
+var (
+	ErrWaitStartupLoadedTimeout = errors.New("wait startup loaded timeout")
 )
 
 type RequiredConfig struct {
@@ -82,16 +87,18 @@ type Client struct {
 
 	client *http.Client
 
-	closeCh chan struct{}
+	closeCh       chan struct{}
+	startupLoadCh chan struct{}
 }
 
 func NewClient(serverList []string, opt ClientOptions) *Client {
 	c := &Client{
-		serverLists:  serverList,
-		opt:          opt,
-		requests:     &configapi.AcquireConfigurationReq{},
-		reqCallbacks: map[string]func(cfg configapi.Configuration){},
-		closeCh:      make(chan struct{}, 1),
+		serverLists:   serverList,
+		opt:           opt,
+		requests:      &configapi.AcquireConfigurationReq{},
+		reqCallbacks:  map[string]func(cfg configapi.Configuration){},
+		closeCh:       make(chan struct{}, 1),
+		startupLoadCh: make(chan struct{}, 1),
 		client: &http.Client{
 			Timeout: 2 * 60 * time.Second, // two times of default wait time(60s) on server side
 		},
@@ -184,6 +191,9 @@ Overall:
 		if !ready {
 			time.Sleep(10 * time.Second)
 			continue
+		} else {
+			// mark startup configure loaded when first ready
+			c.markStartupConfigureLoaded()
 		}
 	}
 }
@@ -200,18 +210,6 @@ func (c *Client) suspend() {
 
 func (c *Client) resume() {
 	c.lockRequests.Store(true)
-}
-
-func GetConfigurationSync() {
-	//TODO get at once
-}
-
-func GetConfigurationKey(r configapi.RequestedConfigurationKey) string {
-	return r.Group + "||" + r.Key
-}
-
-func GetConfigurationKeyFromCfg(c configapi.Configuration) string {
-	return c.Group + "||" + c.Key
 }
 
 func (c *Client) sendRetrieveRequest() (*configapi.AcquireConfigurationRes, error) {
@@ -264,4 +262,43 @@ func (c *Client) logError(msg string, err error) {
 	} else {
 		log.Println("[ERROR]", msg)
 	}
+}
+
+func (c *Client) markStartupConfigureLoaded() {
+	if !c.isStartupConfigureLoaded() {
+		close(c.startupLoadCh)
+	}
+}
+
+func (c *Client) isStartupConfigureLoaded() bool {
+	select {
+	case _, ok := <-c.startupLoadCh:
+		if ok {
+			log.Println("isStartupConfigureLoaded should not get true value")
+		}
+		return !ok
+	default:
+		return false
+	}
+}
+
+func (c *Client) WaitStartupConfigureLoaded(ctx context.Context) error {
+	select {
+	case <-c.startupLoadCh:
+		return nil
+	case <-ctx.Done():
+		return ErrWaitStartupLoadedTimeout
+	}
+}
+
+func GetConfigurationSync() {
+	//TODO get at once
+}
+
+func GetConfigurationKey(r configapi.RequestedConfigurationKey) string {
+	return r.Group + "||" + r.Key
+}
+
+func GetConfigurationKeyFromCfg(c configapi.Configuration) string {
+	return c.Group + "||" + c.Key
 }

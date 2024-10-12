@@ -37,7 +37,7 @@ TBD
     * Support in management portal rather than client and server, meaning that no special changes to the protocol.
 * [ ] Crypto alg for auth and encryption: rsa2048, ecdsa256, rsa4096, ecdsa384, ecdsa521
 * [ ] Nested configure server architecture for scalable capacity
-* [ ] Data lazy loading to reduce memory usage
+* [ ] Server: Data lazy loading to reduce memory usage
 
 ##### Advanced client features
 
