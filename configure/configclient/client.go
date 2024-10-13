@@ -157,6 +157,12 @@ Overall:
 				return false
 			}
 
+			// avoid empty request which will cause 400 bad request result
+			if len(c.requests.Requested) == 0 {
+				c.logWarn("no configure requested", nil)
+				return false
+			}
+
 			res, err := c.sendRetrieveRequest()
 			if err != nil {
 				c.logError("sendRetrieveRequest failed", err)
@@ -261,6 +267,14 @@ func (c *Client) logError(msg string, err error) {
 		log.Println("[ERROR]", msg, err)
 	} else {
 		log.Println("[ERROR]", msg)
+	}
+}
+
+func (c *Client) logWarn(msg string, err error) {
+	if err != nil {
+		log.Println("[WARN]", msg, err)
+	} else {
+		log.Println("[WARN]", msg)
 	}
 }
 

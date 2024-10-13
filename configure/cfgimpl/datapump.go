@@ -186,6 +186,7 @@ Overall:
 		}
 		if retrieveFn() {
 			// has more updates or error occurs, continue immediately
+			//FIXME need to figure out error and wait some time in order to avoid use up all the resources
 			continue
 		} else {
 			// wait short period for next check

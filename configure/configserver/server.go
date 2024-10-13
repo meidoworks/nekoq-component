@@ -210,6 +210,7 @@ func NewConfigureServer(opt ConfigureOptions) *ConfigureServer {
 }
 
 func (c *ConfigureServer) Startup() error {
+	log.Println("ConfigureServer starting...")
 	if err := c.server.Startup(); err != nil {
 		return err
 	}
@@ -221,7 +222,7 @@ func (c *ConfigureServer) Startup() error {
 	srv := &http.Server{Handler: c.readMux}
 	c.httpServer = srv
 	go func() {
-		log.Println("ConfigureServer starting...")
+		log.Println("ConfigureServer started.")
 		if err := srv.Serve(l); err != nil {
 			if !errors.Is(err, http.ErrServerClosed) {
 				panic(err)

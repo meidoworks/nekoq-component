@@ -47,6 +47,13 @@ TBD
 * [x] Allow retrieving configurations from multiple selectors via different client instance options
     * Best practise: reduce the number of clients in this scenario to reduce the workload of the server.
 
+##### Corner Case Tolerant
+
+* [ ] Inconsistent configure versions(especially while a new update spreads) in the single cluster. Client configure
+  fetching will keep flip-flop configure versions connecting to different state servers in a short period. It will cause
+  unstable configuration.
+    * History version based configure fetching can avoid the issue.
+
 ### 2. Concepts
 
 ##### Configuration
