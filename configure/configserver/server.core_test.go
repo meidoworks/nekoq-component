@@ -80,7 +80,7 @@ func (p PreparedDataPump) TriggerDumpToChannel() <-chan configapi.Event {
 }
 
 func TestServer_RetrieveOrWait_Basic1(t *testing.T) {
-	s := newServer(PreparedDataPump{})
+	s := newServer(PreparedDataPump{}, DefaultVersionComparator{})
 	if err := s.Startup(); err != nil {
 		t.Fatal(err)
 	}
@@ -114,7 +114,10 @@ func TestServer_RetrieveOrWait_Basic1(t *testing.T) {
 Loop:
 	for {
 		select {
-		case v := <-ch:
+		case v, ok := <-ch:
+			if !ok {
+				break Loop
+			}
 			result = append(result, v.Configuration)
 		default:
 			if len(result) < 2 {
@@ -123,9 +126,9 @@ Loop:
 				break Loop
 			}
 		}
-		if len(result) > 2 {
-			t.Fatal("got more results than expected")
-		}
+	}
+	if len(result) > 2 {
+		t.Fatal("got more results than expected")
 	}
 
 	expected := map[string]struct{}{
@@ -187,7 +190,7 @@ func (u UpdateDataPump) TriggerDumpToChannel() <-chan configapi.Event {
 
 func TestServer_RetrieveOrWait_Basic2(t *testing.T) {
 	updateDataPump := newUpdateDataPump()
-	s := newServer(updateDataPump)
+	s := newServer(updateDataPump, DefaultVersionComparator{})
 	if err := s.Startup(); err != nil {
 		t.Fatal(err)
 	}

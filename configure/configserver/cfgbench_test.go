@@ -106,7 +106,7 @@ func TestServerBench_WaitingThroughput(t *testing.T) {
 	v := readFromFile()
 	s := newServer(&DumpDataPump{
 		v: v,
-	})
+	}, DefaultVersionComparator{})
 	if err := s.Startup(); err != nil {
 		t.Fatal(err)
 	}
@@ -176,7 +176,7 @@ func TestServerBench_NoWaitingThroughput(t *testing.T) {
 	v := readFromFile()
 	s := newServer(&DumpDataPump{
 		v: v,
-	})
+	}, DefaultVersionComparator{})
 	if err := s.Startup(); err != nil {
 		t.Fatal(err)
 	}

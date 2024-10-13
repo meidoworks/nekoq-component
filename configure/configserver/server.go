@@ -26,7 +26,8 @@ type ConfigureOptions struct {
 
 	MaxWaitTimeForUpdate int // in seconds
 
-	DataPump configapi.DataPump
+	DataPump          configapi.DataPump
+	VersionComparator configapi.VersionComparator
 }
 
 func (c *ConfigureOptions) GetMaxWaitTimeForUpdate() time.Duration {
@@ -185,8 +186,13 @@ func (c *ConfigureServer) handleGetConfiguration(w http.ResponseWriter, r *http.
 }
 
 func NewConfigureServer(opt ConfigureOptions) *ConfigureServer {
+	versionComparator := opt.VersionComparator
+	if versionComparator == nil {
+		versionComparator = DefaultVersionComparator{}
+	}
+
 	// initialize server
-	var srv = newServer(opt.DataPump)
+	var srv = newServer(opt.DataPump, versionComparator)
 	s := &ConfigureServer{
 		opt:    opt,
 		server: srv,

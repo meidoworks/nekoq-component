@@ -49,10 +49,12 @@ TBD
 
 ##### Corner Case Tolerant
 
-* [ ] Inconsistent configure versions(especially while a new update spreads) in the single cluster. Client configure
+* [x] Inconsistent configure versions(especially while a new update spreads) in the single cluster. Client configure
   fetching will keep flip-flop configure versions connecting to different state servers in a short period. It will cause
   unstable configuration.
     * History version based configure fetching can avoid the issue.
+    * In the default implementation, 'strings.Compare' is used to compare versions. So it is expected that versions
+      should be literally incremental.
 
 ### 2. Concepts
 

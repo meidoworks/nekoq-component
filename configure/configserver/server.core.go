@@ -24,6 +24,8 @@ type server struct {
 	cachedId atomic.Int64
 
 	selectorsMap selectorsMap // access should be protected by rwlock
+
+	versionComparator configapi.VersionComparator
 }
 
 func (s *server) nextId() int64 {
@@ -58,7 +60,7 @@ func (s *server) RetrieveOrWait(req *configapi.AcquireConfigurationReq) (NotifyC
 			if cfg == nil {
 				return nil, false
 			}
-			if cfg.Version != v.Version {
+			if s.versionComparator.HasUpdate(v.Version, cfg.Version) {
 				r = append(r, cfg)
 			}
 		}
@@ -104,7 +106,7 @@ func (s *server) RetrieveOrWait(req *configapi.AcquireConfigurationReq) (NotifyC
 			if cfg == nil {
 				return nil, nil, nil, false
 			}
-			if cfg.Version != v.Version {
+			if s.versionComparator.HasUpdate(v.Version, cfg.Version) {
 				r = append(r, cfg)
 			}
 		}
@@ -259,13 +261,15 @@ func (s *server) Shutdown() error {
 	return nil
 }
 
-func newServer(pump configapi.DataPump) *server {
+func newServer(pump configapi.DataPump, versionComparator configapi.VersionComparator) *server {
 	return &server{
 		pump: pump,
 
 		closeCh: make(chan struct{}, 1),
 
 		selectorsMap: selectorsMap{},
+
+		versionComparator: versionComparator,
 	}
 }
 
