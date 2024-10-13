@@ -79,6 +79,7 @@ Valid characters of 'group', 'key' fields:
 * Alphabets - [A-Za-z]
 * Numbers - [0-9]
 * Underscore - [_]
+* Hyphen - [-]
 * Dot - [.]
 
 ##### Selector
@@ -92,6 +93,7 @@ Valid characters of the selector fields are:
 * Alphabets - [A-Za-z]
 * Numbers - [0-9]
 * Underscore - [_]
+* Hyphen - [-]
 * Dot - [.]
 
 `Bahavior of Selectors:`

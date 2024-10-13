@@ -58,13 +58,6 @@ values ($1, $2, $3, $4, $5, $6, $7, $8, $9, nextval('cfg_seq'))`,
 		panic(err)
 	}
 
-	//FIXME need use real cfg_id from previous sql
-	if _, err := tx.Exec(context.Background(),
-		`insert into configuration_history (cfg_id, raw_cfg_value, cfg_operation)
-values ($1, $2, $3);`, 0, data, 0); err != nil {
-		panic(err)
-	}
-
 	if err := tx.Commit(context.Background()); err != nil {
 		panic(err)
 	}
