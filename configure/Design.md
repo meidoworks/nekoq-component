@@ -20,6 +20,11 @@ TBD
     * cbor protocol for data marshalling
 * [x] Server: http support
 * [x] Server: sample cfgserver built on postgresql
+* [ ] Server: Separate APIs for retrieving and writing operations
+* [x] Server: configuration data integrity support
+    * Signature field format - <alg>:<sig>
+    * Signature example: sha256:12345678123456781234567812345678
+    * Using sha256 as default signature
 * [x] Client: Support *struct as dynamic configure container by ClientAdv
     * Thread-safe while reading and writing the configure container
 * [x] Performance: Low resource cost and high throughput
@@ -29,7 +34,6 @@ TBD
 * [ ] Configuration alternatives - env, parameter, file
 * [ ] Configuration encryption
 * [ ] Extension APIs for customization: local file storage provider, customization storage provider
-* [ ] Separate APIs for retrieving and writing operations
 * [ ] Statistics of clients including configure using, client info, client address
 * [ ] Server: https support
 * [ ] Server: auth support
@@ -43,9 +47,10 @@ TBD
 
 ##### Advanced client features
 
-* [ ] Go: on change event callback
+* [x] Go: on change event callback
 * [ ] Go: retrieve full dump configurations periodically
 * [x] Go: Minimum dependencies
+* [x] Go: struct based configuration injection
 * [x] Allow retrieving configurations from multiple selectors via different client instance options
     * Best practise: reduce the number of clients in this scenario to reduce the workload of the server.
 

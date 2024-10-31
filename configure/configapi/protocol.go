@@ -1,6 +1,8 @@
 package configapi
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"slices"
 	"strings"
 )
@@ -54,6 +56,16 @@ type Configuration struct {
 	OptionalSelectors Selectors `cbor:"opt_selectors,"`
 	// Timestamp is the unix timestamp in second of the effective time(create/update) of this configuration
 	Timestamp int64 `cbor:"timestamp,"`
+}
+
+func (c *Configuration) GenerateSignature() string {
+	sha256sum := sha256.Sum256(c.Value)
+	expectedSig := "sha256:" + hex.EncodeToString(sha256sum[:])
+	return expectedSig
+}
+
+func (c *Configuration) ValidateSignature() bool {
+	return c.Signature == c.GenerateSignature()
 }
 
 type RequestedConfigurationKey struct {
