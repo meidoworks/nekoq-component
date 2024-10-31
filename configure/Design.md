@@ -39,11 +39,13 @@ TBD
 * [ ] Crypto alg for auth and encryption: rsa2048, ecdsa256, rsa4096, ecdsa384, ecdsa521
 * [ ] Nested configure server architecture for scalable capacity
 * [ ] Server: Data lazy loading to reduce memory usage
+* [ ] Security: introducing bloom filter/cuckoo filter to avoid non-existing request passing through
 
 ##### Advanced client features
 
 * [ ] Go: on change event callback
 * [ ] Go: retrieve full dump configurations periodically
+* [x] Go: Minimum dependencies
 * [x] Allow retrieving configurations from multiple selectors via different client instance options
     * Best practise: reduce the number of clients in this scenario to reduce the workload of the server.
 
