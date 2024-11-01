@@ -88,18 +88,26 @@ func (d *DatabaseDataWriter) SaveConfiguration(cfg configapi.Configuration) erro
 			cfgId = newCfgId
 		}
 
-		if cfgId > 0 {
-			// exists
-			if err := d.updateConfiguration(tx, &cfg, data, cfgId); err != nil {
-				return err
-			}
-		} else {
-			// non-exist
-			if err := d.updateConfigurationSequence(tx, cfgId); err != nil {
-				return err
+		const NRetry = 10
+		// retry N times to simulate CAS update
+		for i := 0; i < NRetry; i++ {
+			if cfgId > 0 {
+				// exists
+				if updated, err := d.updateConfiguration(tx, &cfg, data, cfgId); err != nil {
+					return err
+				} else if updated {
+					return nil
+				}
+			} else {
+				// non-exist
+				if updated, err := d.updateConfigurationSequence(tx, cfgId); err != nil {
+					return err
+				} else if updated {
+					return nil
+				}
 			}
 		}
-		return nil
+		return errors.New("too many configuration update retries")
 	}
 
 	err = f()
@@ -153,32 +161,53 @@ func (d *DatabaseDataWriter) insertConfiguration(tx pgx.Tx, selStr, optSelStr st
 	}
 }
 
-func (d *DatabaseDataWriter) updateConfigurationSequence(tx pgx.Tx, cfgId int64) error {
+func (d *DatabaseDataWriter) updateConfigurationSequence(tx pgx.Tx, cfgId int64) (bool, error) {
 	now := time.Now().UnixMilli()
 	tag, err := tx.Exec(context.Background(),
 		"update configuration set time_updated = $1, sequence = nextval('cfg_seq') where cfg_id = $2 and pg_try_advisory_xact_lock(-1000)",
 		now, cfgId)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if tag.RowsAffected() == 0 {
-		return errors.New("no record updated")
+		return false, nil
 	} else {
-		return nil
+		return true, nil
 	}
 }
 
-func (d *DatabaseDataWriter) updateConfiguration(tx pgx.Tx, cfg *configapi.Configuration, data []byte, cfgId int64) error {
+func (d *DatabaseDataWriter) updateConfiguration(tx pgx.Tx, cfg *configapi.Configuration, data []byte, cfgId int64) (bool, error) {
 	now := time.Now().UnixMilli()
 	tag, err := tx.Exec(context.Background(),
 		"update configuration set cfg_version = $1, raw_cfg_value = $2, time_updated = $3, sequence = nextval('cfg_seq') where cfg_id = $4 and pg_try_advisory_xact_lock(-1000)",
 		cfg.Version, data, now, cfgId)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if tag.RowsAffected() == 0 {
-		return errors.New("no record updated")
+		return false, nil
 	} else {
-		return nil
+		return true, nil
+	}
+}
+
+func (d *DatabaseDataWriter) DeleteConfiguration(group, key, sel, optSel string) (bool, error) {
+	now := time.Now().UnixMilli()
+	c, err := d.p.Acquire(context.Background())
+	if err != nil {
+		return false, err
+	}
+	defer c.Release()
+
+	tag, err := c.Exec(context.Background(),
+		"update configuration set cfg_status = 1, time_updated = $1, sequence = nextval('cfg_seq') where selectors = $2 and optional_selectors = $3 and cfg_group = $4 and cfg_key = $5 and pg_try_advisory_xact_lock(-1000)",
+		now, sel, optSel, group, key)
+	if err != nil {
+		return false, err
+	}
+	if tag.RowsAffected() == 0 {
+		return false, nil
+	} else {
+		return true, nil
 	}
 }

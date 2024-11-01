@@ -20,7 +20,7 @@ TBD
     * cbor protocol for data marshalling
 * [x] Server: http support
 * [x] Server: sample cfgserver built on postgresql
-* [ ] Server: Separate APIs for retrieving and writing operations
+* [x] Server: Separate APIs for retrieving and writing operations
 * [x] Server: configuration data integrity support
     * Signature field format - <alg>:<sig>
     * Signature example: sha256:12345678123456781234567812345678
@@ -221,6 +221,76 @@ Content-Type = application/cbor
     * otherwise: cbor encoded response
     * undefined responses beyond the known scenarios even with status codes = 400,404,500
 
+##### 3.1.3 POST /configure => Save or update configuration
+
+* Request Headers:
+
+```text
+Request Id header(Optional):
+X-Request-Id
+
+General http proxy headers(ordered):
+True-Client-IP
+X-Real-IP
+X-Forwarded-For
+
+MIME header:
+Accept = application/cbor
+Content-Type = application/cbor
+```
+
+* Request body: cbor encoded request
+
+* Response status
+
+```text
+200 = success
+400 = bad information in header or/and body
+406 = accept header invalid
+500 = internal error while processing request
+```
+
+* Response headers: (none)
+
+* Response body: (none)
+
+##### 3.1.4 DELETE /configure/{group}/{key} => delete existing configuration
+
+* Request Headers:
+
+```text
+Request Id header(Optional):
+X-Request-Id
+
+General http proxy headers(ordered):
+True-Client-IP
+X-Real-IP
+X-Forwarded-For
+
+MIME header:
+Accept = application/cbor
+
+Configure server required headers:
+X-Configuration-Sel = (selectors data)
+X-Configuration-Opt-Sel = (optional selectors data)
+```
+
+* Request body: (empty)
+
+* Response status
+
+```text
+200 = success
+400 = bad information in header or/and body
+404 = configuration not found so not deleted
+406 = accept header invalid
+500 = internal error while processing request
+```
+
+* Response Headers: (none)
+
+* Response body: (none)
+
 ### A. References
 
 ##### A.1 Ways of beta / blue-green / canary / etc.
@@ -230,7 +300,7 @@ Content-Type = application/cbor
 
 ##### A.2 Reason to choose cbor as first supported encoding
 
-1. Schemaless: flexible and avoid dependency issue
+1. Schemaless with self-describing: flexible and avoid dependency issue
 2. Speed: depending on protocol and implementation
 3. Compatibility: support various languages and platforms
 4. Security: safe marshalling
