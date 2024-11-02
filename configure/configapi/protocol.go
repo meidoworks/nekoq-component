@@ -3,6 +3,7 @@ package configapi
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"slices"
 	"strings"
 )
@@ -36,6 +37,22 @@ func (s *Selectors) cache() {
 		}
 		s.cached = buf.String()
 	}
+}
+
+func (s *Selectors) Fill(str string) error {
+	m := map[string]string{}
+	splits := strings.Split(strings.TrimSpace(str), ",")
+	for _, v := range splits {
+		idx := strings.Index(strings.TrimSpace(v), "=")
+		if idx == -1 {
+			return errors.New("invalid selectors string")
+		}
+		m[strings.TrimSpace(v[:idx])] = strings.TrimSpace(v[idx+1:])
+	}
+	// update internal data and reset cached info
+	s.Data = m
+	s.cached = ""
+	return nil
 }
 
 type Configuration struct {

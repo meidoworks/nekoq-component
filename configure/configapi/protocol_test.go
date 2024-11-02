@@ -33,3 +33,14 @@ func TestSelectorCache(t *testing.T) {
 		t.Fatal("cache field")
 	}
 }
+
+func TestSelectors_Fill(t *testing.T) {
+	s := &Selectors{}
+	if err := s.Fill("dc=1,env=2,app=good"); err != nil {
+		t.Fatal(err)
+	}
+	if len(s.Data) != 3 {
+		t.Fatal("3 items expected")
+	}
+	t.Log(s.Data)
+}
