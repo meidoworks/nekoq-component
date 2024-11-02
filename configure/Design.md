@@ -44,6 +44,7 @@ TBD
 * [ ] Nested configure server architecture for scalable capacity
 * [ ] Server: Data lazy loading to reduce memory usage
 * [ ] Security: introducing bloom filter/cuckoo filter to avoid non-existing request passing through
+* [ ] Security: Rate limit by ip/token/etc to avoid DoS attack to the long polling mechanism
 
 ##### Advanced client features
 

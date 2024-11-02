@@ -41,13 +41,15 @@ func (s *Selectors) cache() {
 
 func (s *Selectors) Fill(str string) error {
 	m := map[string]string{}
-	splits := strings.Split(strings.TrimSpace(str), ",")
-	for _, v := range splits {
-		idx := strings.Index(strings.TrimSpace(v), "=")
-		if idx == -1 {
-			return errors.New("invalid selectors string")
+	if str = strings.TrimSpace(str); str != "" {
+		splits := strings.Split(str, ",")
+		for _, v := range splits {
+			idx := strings.Index(strings.TrimSpace(v), "=")
+			if idx == -1 {
+				return errors.New("invalid selectors string")
+			}
+			m[strings.TrimSpace(v[:idx])] = strings.TrimSpace(v[idx+1:])
 		}
-		m[strings.TrimSpace(v[:idx])] = strings.TrimSpace(v[idx+1:])
 	}
 	// update internal data and reset cached info
 	s.Data = m

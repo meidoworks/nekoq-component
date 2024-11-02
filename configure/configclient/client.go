@@ -36,6 +36,10 @@ type ClientOptions struct {
 	SelectorCluster     string
 
 	SelectorHostName string
+	SelectorBeta     string
+
+	OverrideSelectors         *configapi.Selectors // used for overriding detail selector config
+	OverrideOptionalSelectors *configapi.Selectors // used for overriding detail selector config
 
 	Auth string
 
@@ -45,6 +49,9 @@ type ClientOptions struct {
 }
 
 func (c *ClientOptions) ToSelectors() configapi.Selectors {
+	if c.OverrideSelectors != nil {
+		return *c.OverrideSelectors
+	}
 	s := configapi.Selectors{
 		Data: map[string]string{},
 	}
@@ -67,11 +74,17 @@ func (c *ClientOptions) ToSelectors() configapi.Selectors {
 }
 
 func (c *ClientOptions) ToOptSelectors() configapi.Selectors {
+	if c.OverrideOptionalSelectors != nil {
+		return *c.OverrideOptionalSelectors
+	}
 	s := configapi.Selectors{
 		Data: map[string]string{},
 	}
 	if strings.TrimSpace(c.SelectorHostName) != "" {
 		s.Data["host"] = strings.TrimSpace(c.SelectorHostName)
+	}
+	if strings.TrimSpace(c.SelectorBeta) != "" {
+		s.Data["beta"] = strings.TrimSpace(c.SelectorBeta)
 	}
 	return s
 }
