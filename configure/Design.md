@@ -52,6 +52,8 @@ TBD
 * [ ] Go: retrieve full dump configurations periodically
 * [x] Go: Minimum dependencies
 * [x] Go: struct based configuration injection
+* [ ] Go: Load configuration from environment variables and program flags
+* [ ] Go: Local fallback storage on startup
 * [x] Allow retrieving configurations from multiple selectors via different client instance options
     * Best practise: reduce the number of clients in this scenario to reduce the workload of the server.
 
