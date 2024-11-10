@@ -99,7 +99,7 @@ func (cc *ConfigContainer[T]) Register(c *ClientAdv, group, key string, unmarsha
 			}
 			onchange := cc.OnChange
 			if onchange != nil {
-				onchange(cfg, newInst)
+				onchange(cfg, newInst.(T))
 			}
 		},
 	})
