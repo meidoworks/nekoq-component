@@ -61,7 +61,7 @@ func (c *ClientAdv) Register(group, key string, unmarshaler Unmarshaler, contain
 type ConfigContainer[T any] struct {
 	val *atomic.Value
 	// OnChange is called when any update on the configuration
-	OnChange func(cfg configapi.Configuration)
+	OnChange func(cfg configapi.Configuration, container T)
 }
 
 func (cc *ConfigContainer[T]) Get() T {
@@ -99,7 +99,7 @@ func (cc *ConfigContainer[T]) Register(c *ClientAdv, group, key string, unmarsha
 			}
 			onchange := cc.OnChange
 			if onchange != nil {
-				onchange(cfg)
+				onchange(cfg, newInst)
 			}
 		},
 	})
