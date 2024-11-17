@@ -30,9 +30,11 @@ TBD
 * [x] Performance: Low resource cost and high throughput
 * [ ] Configuration management for history restoring, beta application
 * [ ] Configuration authorization
-* [ ] Local fallback storage
+* [ ] Local fallback storage for DataPump failover
 * [ ] Configuration alternatives - env, parameter, file
 * [ ] Configuration encryption
+    * Storage encryption
+    * Property field based encryption
 * [ ] Extension APIs for customization: local file storage provider, customization storage provider
 * [ ] Statistics of clients including configure using, client info, client address
 * [ ] Server: https support
@@ -52,8 +54,11 @@ TBD
 * [ ] Go: retrieve full dump configurations periodically
 * [x] Go: Minimum dependencies
 * [x] Go: struct based configuration injection
-* [ ] Go: Load configuration from environment variables and program flags
+* [x] Go: Load configuration from environment variables
+* [ ] Go: Load configuration from program flags
 * [ ] Go: Local fallback storage on startup
+    * When to fallback to local storage
+    * Whether to ensure encrypted on local storage
 * [x] Allow retrieving configurations from multiple selectors via different client instance options
     * Best practise: reduce the number of clients in this scenario to reduce the workload of the server.
 

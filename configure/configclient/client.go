@@ -320,6 +320,7 @@ func (c *Client) WaitStartupConfigureLoaded(ctx context.Context) error {
 
 func GetConfigurationSync() {
 	//TODO get at once
+	panic("implement me")
 }
 
 func GetConfigurationKey(r configapi.RequestedConfigurationKey) string {
