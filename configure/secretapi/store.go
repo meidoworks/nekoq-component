@@ -123,13 +123,21 @@ type KeyStorage interface {
 	StoreLevel1KeySet(name string, key *KeySet) error
 	// StoreLevel2KeySet will create or rotate the level2 KeySet for the corresponding level1 and level2 names with the given key
 	StoreLevel2KeySet(level1KeyName, name string, key *KeySet) error
+	// FetchLevel2KeySet fetches the raw key data for external use
+	FetchLevel2KeySet(name string) (int64, *KeySet, error)
+	// StoreL2DataKey will create or rotate the level2 specific type of key
+	StoreL2DataKey(l1KeyName, name string, keyType KeyType, key []byte) error
+	// FetchL2DataKey fetches the raw data for external use
+	FetchL2DataKey(name string) (int64, KeyType, []byte, error)
 
-	//TODO FetchLevel2KeySet fetches the raw key data for external use
-	FetchLevel2KeySet(name string) (*KeySet, error)
-	//TODO StoreL2Key will create or rotate the level2 specific type of key
-	StoreL2Key(l1KeyName, name string, keyType KeyType, key []byte) error
-	//TODO FetchL2Key fetches the raw data for external use
-	FetchL2Key(name string) (KeyType, []byte, error)
+	// LoadLevel2KeySetById loads KeySet by id
+	//
+	// This method should be only used for decryption since it will retrieve the key regardless of key status.
+	LoadLevel2KeySetById(id int64) (*KeySet, error)
+	// LoadL2DataKeyById loads data key by id
+	//
+	// This method should be only used for decryption since it will retrieve the key regardless of key status.
+	LoadL2DataKeyById(id int64) (KeyType, []byte, error)
 }
 
 type DefaultKeyStorage struct {
@@ -147,14 +155,22 @@ func (d *DefaultKeyStorage) StoreLevel2KeySet(level1KeyName, name string, key *K
 	panic("unsupported operation")
 }
 
-func (d *DefaultKeyStorage) FetchLevel2KeySet(name string) (*KeySet, error) {
+func (d *DefaultKeyStorage) FetchLevel2KeySet(name string) (int64, *KeySet, error) {
 	panic("unsupported operation")
 }
 
-func (d *DefaultKeyStorage) StoreL2Key(l1KeyName, name string, keyType KeyType, key []byte) error {
+func (d *DefaultKeyStorage) StoreL2DataKey(l1KeyName, name string, keyType KeyType, key []byte) error {
 	panic("unsupported operation")
 }
 
-func (d *DefaultKeyStorage) FetchL2Key(name string) (KeyType, []byte, error) {
+func (d *DefaultKeyStorage) FetchL2DataKey(name string) (int64, KeyType, []byte, error) {
+	panic("unsupported operation")
+}
+
+func (d *DefaultKeyStorage) LoadLevel2KeySetById(id int64) (*KeySet, error) {
+	panic("unsupported operation")
+}
+
+func (d *DefaultKeyStorage) LoadL2DataKeyById(id int64) (KeyType, []byte, error) {
 	panic("unsupported operation")
 }

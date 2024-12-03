@@ -148,9 +148,21 @@ var DefaultKeyGen KeyGen = GeneralKeyGen{}
 
 type KeyGen interface {
 	GenerateVitalKeySet() (*KeySet, error)
+
+	Aes128() ([]byte, error)
 }
 
 type GeneralKeyGen struct {
+}
+
+func (g GeneralKeyGen) Aes128() ([]byte, error) {
+	buf := make([]byte, 128/8)
+	if n, err := rand.Read(buf); err != nil {
+		return nil, err
+	} else if n != len(buf) {
+		return nil, fmt.Errorf("failed to read random data")
+	}
+	return buf, nil
 }
 
 func (g GeneralKeyGen) GenerateVitalKeySet() (*KeySet, error) {

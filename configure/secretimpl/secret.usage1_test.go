@@ -212,6 +212,14 @@ func TestPostgresKeyStorage_StoreLevel2KeySet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if err := keyStorage.StoreLevel2KeySet(l1key, "test_case", ks); err != nil {
+		t.Fatal(err)
+	}
+
+	ks, err = secretapi.DefaultKeyGen.GenerateVitalKeySet()
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err := keyStorage.StoreLevel2KeySet(l1key, l2key, ks); err != nil {
 		t.Fatal(err)
 	}
@@ -224,4 +232,62 @@ func TestPostgresKeyStorage_StoreLevel2KeySet(t *testing.T) {
 		t.Fatal(err)
 	}
 
+}
+
+func TestPostgresKeyStorage_FetchLevel2KeySet(t *testing.T) {
+	keyStorage := InitTestKeyStorage(t)
+	l2key := "test_case"
+
+	keyId, ks, err := keyStorage.FetchLevel2KeySet(l2key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if keyId == 0 {
+		t.Fatal("key id is zero")
+	}
+	if ks == nil {
+		t.Fatal("keyset is nil")
+	}
+	if !ks.VerifyCrc() {
+		t.Fatal("keyset crc failed")
+	}
+}
+
+func TestPostgresKeyStorage_StoreL2DataKey(t *testing.T) {
+	keyStorage := InitTestKeyStorage(t)
+	l1key := "test_case"
+	l2key := random.String(10)
+	key, err := secretapi.DefaultKeyGen.Aes128()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := keyStorage.StoreL2DataKey(l1key, "test_case_data_key", secretapi.KeyAES128, key); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := keyStorage.StoreL2DataKey(l1key, l2key, secretapi.KeyAES128, key); err != nil {
+		t.Fatal(err)
+	}
+	if err := keyStorage.StoreL2DataKey(l1key, l2key, secretapi.KeyAES128, key); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPostgresKeyStorage_FetchL2DataKey(t *testing.T) {
+	keyStorage := InitTestKeyStorage(t)
+	keyId, kt, key, err := keyStorage.FetchL2DataKey("test_case_data_key")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if keyId == 0 {
+		t.Fatal("key id is zero")
+	}
+	if kt != secretapi.KeyAES128 {
+		t.Fatal("wrong key type")
+	}
+	if len(key) != 128/8 {
+		t.Fatal("wrong key length")
+	}
+	t.Log(string(key))
 }

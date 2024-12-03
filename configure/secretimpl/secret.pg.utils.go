@@ -91,3 +91,37 @@ func keySetDecryptByL1(data []byte, lv1Ks *secretapi.KeySet) (int64, *secretapi.
 	}
 	return keyId, keySet, nil
 }
+
+func dataEncryptByL1(data []byte, id int64, lv1Ks *secretapi.KeySet) ([]byte, error) {
+	ciphertext, nonce, err := lv1Ks.AesGCMEnc(data)
+	if err != nil {
+		return nil, err
+	}
+	encrypted := fmt.Sprintf("$%d$%s$%s", id, base64.StdEncoding.EncodeToString(ciphertext), base64.StdEncoding.EncodeToString(nonce))
+	return []byte(encrypted), nil
+}
+
+func dataDecryptByL1(data []byte, lv1Ks *secretapi.KeySet) (int64, []byte, error) {
+	var keyId int64
+	var rest string
+	if _, err := fmt.Sscanf(string(data), "$%d$%s", &keyId, &rest); err != nil {
+		return 0, nil, err
+	}
+	splits := strings.Split(rest, "$")
+	if len(splits) != 2 {
+		return 0, nil, errors.New("invalid cipher data")
+	}
+	ciphertext, err := base64.StdEncoding.DecodeString(splits[0])
+	if err != nil {
+		return 0, nil, err
+	}
+	nonce, err := base64.StdEncoding.DecodeString(splits[1])
+	if err != nil {
+		return 0, nil, err
+	}
+	plaintext, err := lv1Ks.AesGCMDec(ciphertext, nonce)
+	if err != nil {
+		return 0, nil, err
+	}
+	return keyId, plaintext, nil
+}
