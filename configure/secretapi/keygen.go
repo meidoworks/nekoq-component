@@ -155,9 +155,31 @@ type KeyGen interface {
 	General128B() ([]byte, error)
 
 	Rsa(keyType KeyType) ([]byte, error)
+	ECDSA(keyType KeyType) ([]byte, error)
 }
 
 type GeneralKeyGen struct {
+}
+
+func (g GeneralKeyGen) ECDSA(keyType KeyType) ([]byte, error) {
+	var curve elliptic.Curve
+	switch keyType {
+	case KeyECDSA224:
+		curve = elliptic.P224()
+	case KeyECDSA256:
+		curve = elliptic.P256()
+	case KeyECDSA384:
+		curve = elliptic.P384()
+	case KeyECDSA521:
+		curve = elliptic.P521()
+	default:
+		return nil, errors.New("invalid rsa key type")
+	}
+	pri, err := ecdsa.GenerateKey(curve, rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+	return NewPemTool().EncodeECDSAPrivateKey(pri)
 }
 
 func (g GeneralKeyGen) Rsa(keyType KeyType) ([]byte, error) {

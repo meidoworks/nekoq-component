@@ -29,6 +29,14 @@
 * Support cipher operations
     * Encryption / Decryption
     * Sign / Verify
-* Addon => Jwt token
+* [x] Addon => Jwt token
     * Algorithms: HS256/HS384/HS512, RS256/RS384/RS512, ES256/ES384/ES512, PS256/PS384/RS512
+    * 64B key - HS256
+    * 128B key - HS384/HS512
+    * RSA1024/2048/3072/4096 - RS256/RS384/RS512
+    * RSA1024/2048/3072/4096 - PS256/RS384
+    * RSA2048/3072/4096 - PS512
+    * ECDSA256 - ES256
+    * ECDSA384 - ES384
+    * ECDSA521 - ES512
 * Support importing external keys and using for external integration

@@ -47,6 +47,12 @@ func (l *Level2CipherTool) NewRsaKey(name string, keyType KeyType) error {
 	}, name, keyType)
 }
 
+func (l *Level2CipherTool) NewEcdsaKey(name string, keyType KeyType) error {
+	return l.internalNewKey(func() ([]byte, error) {
+		return l.keyGen.ECDSA(keyType)
+	}, name, keyType)
+}
+
 func (l *Level2CipherTool) Aes128Encrypt(name string, plaintext, additionalData []byte) (keyId int64, rCiphertext, rNonce []byte, rerr error) {
 	keyId, kt, key, err := l.storage.FetchL2DataKey(name)
 	if err != nil {

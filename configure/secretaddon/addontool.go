@@ -9,6 +9,10 @@ import (
 	"github.com/meidoworks/nekoq-component/configure/secretapi"
 )
 
+var (
+	ErrJwtInvalidAlgCombination = errors.New("invalid algorithm combination")
+)
+
 const (
 	JwtHeaderKid = "kid"
 	JwtHeaderAlg = "alg"
@@ -23,6 +27,12 @@ const (
 	JwtAlgRS256 JwtAlg = "RS256"
 	JwtAlgRS384 JwtAlg = "RS384"
 	JwtAlgRS512 JwtAlg = "RS512"
+	JwtAlgPS256 JwtAlg = "PS256"
+	JwtAlgPS384 JwtAlg = "PS384"
+	JwtAlgPS512 JwtAlg = "PS512"
+	JwtAlgES256 JwtAlg = "ES256"
+	JwtAlgES384 JwtAlg = "ES384"
+	JwtAlgES512 JwtAlg = "ES512"
 )
 
 type AddonTool struct {
@@ -130,6 +140,36 @@ func jwtVerificationKeyMapping(keyType secretapi.KeyType, alg JwtAlg, key []byte
 			return jwt.SigningMethodRS384, priKey.Public(), nil
 		case JwtAlgRS512:
 			return jwt.SigningMethodRS512, priKey.Public(), nil
+		case JwtAlgPS256:
+			return jwt.SigningMethodPS256, priKey.Public(), nil
+		case JwtAlgPS384:
+			return jwt.SigningMethodPS384, priKey.Public(), nil
+		case JwtAlgPS512:
+			if keyType == secretapi.KeyRSA1024 {
+				return nil, nil, ErrJwtInvalidAlgCombination
+			}
+			return jwt.SigningMethodPS512, priKey.Public(), nil
+		default:
+			return nil, nil, errors.New("invalid algorithm")
+		}
+	case secretapi.KeyECDSA224:
+		fallthrough
+	case secretapi.KeyECDSA256:
+		fallthrough
+	case secretapi.KeyECDSA384:
+		fallthrough
+	case secretapi.KeyECDSA521:
+		priKey, err := secretapi.NewPemTool().ParseECDSAPrivateKey(key)
+		if err != nil {
+			return nil, nil, err
+		}
+		switch alg {
+		case JwtAlgES256:
+			return jwt.SigningMethodES256, priKey.Public(), nil
+		case JwtAlgES384:
+			return jwt.SigningMethodES384, priKey.Public(), nil
+		case JwtAlgES512:
+			return jwt.SigningMethodES512, priKey.Public(), nil
 		default:
 			return nil, nil, errors.New("invalid algorithm")
 		}
@@ -171,9 +211,45 @@ func jwtSigningKeyMapping(keyType secretapi.KeyType, alg JwtAlg, key []byte) (jw
 			return jwt.SigningMethodRS384, priKey, nil
 		case JwtAlgRS512:
 			return jwt.SigningMethodRS512, priKey, nil
+		case JwtAlgPS256:
+			return jwt.SigningMethodPS256, priKey, nil
+		case JwtAlgPS384:
+			return jwt.SigningMethodPS384, priKey, nil
+		case JwtAlgPS512:
+			if keyType == secretapi.KeyRSA1024 {
+				return nil, nil, ErrJwtInvalidAlgCombination
+			}
+			return jwt.SigningMethodPS512, priKey, nil
 		default:
 			return nil, nil, errors.New("invalid algorithm")
 		}
+	case secretapi.KeyECDSA256:
+		if alg != JwtAlgES256 {
+			return nil, nil, errors.New("invalid key type")
+		}
+		priKey, err := secretapi.NewPemTool().ParseECDSAPrivateKey(key)
+		if err != nil {
+			return nil, nil, err
+		}
+		return jwt.SigningMethodES256, priKey, nil
+	case secretapi.KeyECDSA384:
+		if alg != JwtAlgES384 {
+			return nil, nil, errors.New("invalid key type")
+		}
+		priKey, err := secretapi.NewPemTool().ParseECDSAPrivateKey(key)
+		if err != nil {
+			return nil, nil, err
+		}
+		return jwt.SigningMethodES384, priKey, nil
+	case secretapi.KeyECDSA521:
+		if alg != JwtAlgES512 {
+			return nil, nil, errors.New("invalid key type")
+		}
+		priKey, err := secretapi.NewPemTool().ParseECDSAPrivateKey(key)
+		if err != nil {
+			return nil, nil, err
+		}
+		return jwt.SigningMethodES512, priKey, nil
 	}
 
 	return nil, nil, errors.New("invalid key type")
