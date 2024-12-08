@@ -152,27 +152,33 @@ func jwtVerificationKeyMapping(keyType secretapi.KeyType, alg JwtAlg, key []byte
 		default:
 			return nil, nil, errors.New("invalid algorithm")
 		}
-	case secretapi.KeyECDSA224:
-		fallthrough
 	case secretapi.KeyECDSA256:
-		fallthrough
-	case secretapi.KeyECDSA384:
-		fallthrough
-	case secretapi.KeyECDSA521:
+		if alg != JwtAlgES256 {
+			return nil, nil, errors.New("invalid key type")
+		}
 		priKey, err := secretapi.NewPemTool().ParseECDSAPrivateKey(key)
 		if err != nil {
 			return nil, nil, err
 		}
-		switch alg {
-		case JwtAlgES256:
-			return jwt.SigningMethodES256, priKey.Public(), nil
-		case JwtAlgES384:
-			return jwt.SigningMethodES384, priKey.Public(), nil
-		case JwtAlgES512:
-			return jwt.SigningMethodES512, priKey.Public(), nil
-		default:
-			return nil, nil, errors.New("invalid algorithm")
+		return jwt.SigningMethodES256, priKey.Public(), nil
+	case secretapi.KeyECDSA384:
+		if alg != JwtAlgES384 {
+			return nil, nil, errors.New("invalid key type")
 		}
+		priKey, err := secretapi.NewPemTool().ParseECDSAPrivateKey(key)
+		if err != nil {
+			return nil, nil, err
+		}
+		return jwt.SigningMethodES384, priKey.Public(), nil
+	case secretapi.KeyECDSA521:
+		if alg != JwtAlgES512 {
+			return nil, nil, errors.New("invalid key type")
+		}
+		priKey, err := secretapi.NewPemTool().ParseECDSAPrivateKey(key)
+		if err != nil {
+			return nil, nil, err
+		}
+		return jwt.SigningMethodES512, priKey.Public(), nil
 	}
 
 	return nil, nil, errors.New("invalid key type")

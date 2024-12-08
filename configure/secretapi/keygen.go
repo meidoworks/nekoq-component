@@ -154,7 +154,7 @@ type KeyGen interface {
 	General64B() ([]byte, error)
 	General128B() ([]byte, error)
 
-	Rsa(keyType KeyType) ([]byte, error)
+	RSA(keyType KeyType) ([]byte, error)
 	ECDSA(keyType KeyType) ([]byte, error)
 }
 
@@ -182,7 +182,7 @@ func (g GeneralKeyGen) ECDSA(keyType KeyType) ([]byte, error) {
 	return NewPemTool().EncodeECDSAPrivateKey(pri)
 }
 
-func (g GeneralKeyGen) Rsa(keyType KeyType) ([]byte, error) {
+func (g GeneralKeyGen) RSA(keyType KeyType) ([]byte, error) {
 	var bits int
 	switch keyType {
 	case KeyRSA1024:

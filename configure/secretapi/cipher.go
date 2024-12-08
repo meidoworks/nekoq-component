@@ -43,7 +43,7 @@ func (l *Level2CipherTool) NewAes128Key(name string) error {
 
 func (l *Level2CipherTool) NewRsaKey(name string, keyType KeyType) error {
 	return l.internalNewKey(func() ([]byte, error) {
-		return l.keyGen.Rsa(keyType)
+		return l.keyGen.RSA(keyType)
 	}, name, keyType)
 }
 
