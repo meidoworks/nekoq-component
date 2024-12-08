@@ -56,7 +56,7 @@ func TestDataCipherByL1(t *testing.T) {
 	if len(newKs) != 8 {
 		t.Fatal("keys length mismatch")
 	}
-	if newKs[5] == 5+1 {
+	if newKs[5] != 5+1 {
 		t.Fatal("data mismatch")
 	}
 }

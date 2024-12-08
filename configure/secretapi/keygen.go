@@ -150,9 +150,55 @@ type KeyGen interface {
 	GenerateVitalKeySet() (*KeySet, error)
 
 	Aes128() ([]byte, error)
+
+	General64B() ([]byte, error)
+	General128B() ([]byte, error)
+
+	Rsa(keyType KeyType) ([]byte, error)
 }
 
 type GeneralKeyGen struct {
+}
+
+func (g GeneralKeyGen) Rsa(keyType KeyType) ([]byte, error) {
+	var bits int
+	switch keyType {
+	case KeyRSA1024:
+		bits = 1024
+	case KeyRSA2048:
+		bits = 2048
+	case KeyRSA4096:
+		bits = 4096
+	case KeyRSA3072:
+		bits = 3072
+	default:
+		return nil, errors.New("invalid rsa key type")
+	}
+	pri, err := rsa.GenerateKey(rand.Reader, bits)
+	if err != nil {
+		return nil, err
+	}
+	return NewPemTool().EncodeRsaPrivateKey(pri)
+}
+
+func (g GeneralKeyGen) General64B() ([]byte, error) {
+	buf := make([]byte, 64)
+	if n, err := rand.Read(buf); err != nil {
+		return nil, err
+	} else if n != len(buf) {
+		return nil, fmt.Errorf("failed to read random data")
+	}
+	return buf, nil
+}
+
+func (g GeneralKeyGen) General128B() ([]byte, error) {
+	buf := make([]byte, 128)
+	if n, err := rand.Read(buf); err != nil {
+		return nil, err
+	} else if n != len(buf) {
+		return nil, fmt.Errorf("failed to read random data")
+	}
+	return buf, nil
 }
 
 func (g GeneralKeyGen) Aes128() ([]byte, error) {

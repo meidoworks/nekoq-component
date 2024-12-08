@@ -8,7 +8,7 @@
 
 * [x] Unseal with root key
 * [x] First time initialization and unseal initialization
-* Multiple levels: root key, level1 key, level2 key
+* [x] Multiple levels: root key, level1 key, level2 key
     * Root Key: Cannot be accessed by secret and is provided by external provider, used for unseal secret and encrypting
       level1 keys
         * Custom Implementation1: shamir keys
@@ -29,3 +29,6 @@
 * Support cipher operations
     * Encryption / Decryption
     * Sign / Verify
+* Addon => Jwt token
+    * Algorithms: HS256/HS384/HS512, RS256/RS384/RS512, ES256/ES384/ES512, PS256/PS384/RS512
+* Support importing external keys and using for external integration

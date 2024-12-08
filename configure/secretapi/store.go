@@ -12,6 +12,7 @@ var (
 
 type KeyType int
 
+// TODO optimize via mapping table
 func (k KeyType) String() string {
 	switch k {
 	case KeyKeySet:
@@ -40,6 +41,10 @@ func (k KeyType) String() string {
 		return "KeyECDSA384"
 	case KeyECDSA521:
 		return "KeyECDSA521"
+	case KeyGeneral64B:
+		return "KeyGeneral64B"
+	case KeyGeneral128B:
+		return "KeyGeneral128B"
 	default:
 		panic("unknown key type:" + fmt.Sprint(k))
 	}
@@ -73,6 +78,10 @@ func (k *KeyType) FromString(str string) {
 		*k = KeyECDSA384
 	case "KeyECDSA521":
 		*k = KeyECDSA521
+	case "KeyGeneral64B":
+		*k = KeyGeneral64B
+	case "KeyGeneral128B":
+		*k = KeyGeneral128B
 	default:
 		panic("unknown key type:" + str)
 	}
@@ -104,6 +113,11 @@ const (
 
 const (
 	KeyEd25519 KeyType = iota + 2201
+)
+
+const (
+	KeyGeneral64B KeyType = iota + 3001
+	KeyGeneral128B
 )
 
 type KeySetAlg int

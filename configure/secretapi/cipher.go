@@ -21,12 +21,30 @@ func NewLevel2CipherTool(storage KeyStorage, keyGen KeyGen, l1key string) *Level
 	}
 }
 
-func (l *Level2CipherTool) NewAes128Key(name string) error {
-	key, err := l.keyGen.Aes128()
+func (l *Level2CipherTool) internalNewKey(genFn func() ([]byte, error), name string, keyType KeyType) error {
+	key, err := genFn()
 	if err != nil {
 		return err
 	}
-	return l.storage.StoreL2DataKey(l.l1key, name, KeyAES128, key)
+	return l.storage.StoreL2DataKey(l.l1key, name, keyType, key)
+}
+
+func (l *Level2CipherTool) NewGeneral64BKey(name string) error {
+	return l.internalNewKey(l.keyGen.General64B, name, KeyGeneral64B)
+}
+
+func (l *Level2CipherTool) NewGeneral128BKey(name string) error {
+	return l.internalNewKey(l.keyGen.General128B, name, KeyGeneral128B)
+}
+
+func (l *Level2CipherTool) NewAes128Key(name string) error {
+	return l.internalNewKey(l.keyGen.Aes128, name, KeyAES128)
+}
+
+func (l *Level2CipherTool) NewRsaKey(name string, keyType KeyType) error {
+	return l.internalNewKey(func() ([]byte, error) {
+		return l.keyGen.Rsa(keyType)
+	}, name, keyType)
 }
 
 func (l *Level2CipherTool) Aes128Encrypt(name string, plaintext, additionalData []byte) (keyId int64, rCiphertext, rNonce []byte, rerr error) {
