@@ -5,6 +5,7 @@ go 1.23.0
 require (
 	github.com/fxamacker/cbor/v2 v2.7.0
 	github.com/go-chi/chi/v5 v5.1.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/peterbourgon/diskv/v3 v3.0.1
 	github.com/spf13/afero v1.11.0
