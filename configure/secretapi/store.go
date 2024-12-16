@@ -46,7 +46,7 @@ func (k KeyType) String() string {
 	case KeyGeneral128B:
 		return "KeyGeneral128B"
 	default:
-		panic("unknown key type:" + fmt.Sprint(k))
+		panic("unknown key type:" + fmt.Sprint(int(k)))
 	}
 }
 

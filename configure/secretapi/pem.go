@@ -8,11 +8,76 @@ import (
 	"errors"
 )
 
+// PemTool supports encoding and decoding pem cert and private keys
+// Pending items: password private key, bundled cert file
 type PemTool struct {
 }
 
 func NewPemTool() *PemTool {
 	return &PemTool{}
+}
+
+func (p *PemTool) EncodeCertificateRevocationList(csr []byte) ([]byte, error) {
+	certBlock := &pem.Block{
+		Type:  "X509 CRL",
+		Bytes: csr,
+	}
+	pemData := pem.EncodeToMemory(certBlock)
+	return pemData, nil
+}
+
+func (p *PemTool) ParseCertificateRevocationList(pemData []byte) (*x509.RevocationList, error) {
+	block, _ := pem.Decode(pemData)
+	if block == nil {
+		return nil, errors.New("pem decode failed")
+	}
+	req, err := x509.ParseRevocationList(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	return req, nil
+}
+
+func (p *PemTool) EncodeCertificateRequest(csr []byte) ([]byte, error) {
+	certBlock := &pem.Block{
+		Type:  "CERTIFICATE REQUEST",
+		Bytes: csr,
+	}
+	pemData := pem.EncodeToMemory(certBlock)
+	return pemData, nil
+}
+
+func (p *PemTool) ParseCertificateRequest(pemData []byte) (*x509.CertificateRequest, error) {
+	block, _ := pem.Decode(pemData)
+	if block == nil {
+		return nil, errors.New("pem decode failed")
+	}
+	req, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	return req, nil
+}
+
+func (p *PemTool) EncodeCertificate(cert *x509.Certificate) ([]byte, error) {
+	certBlock := &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: cert.Raw,
+	}
+	pemData := pem.EncodeToMemory(certBlock)
+	return pemData, nil
+}
+
+func (p *PemTool) ParseCertificate(data []byte) (*x509.Certificate, error) {
+	block, _ := pem.Decode(data)
+	if block == nil {
+		return nil, errors.New("failed to decode PEM block")
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	return cert, nil
 }
 
 func (p *PemTool) EncodeRsaPrivateKey(pri *rsa.PrivateKey) ([]byte, error) {

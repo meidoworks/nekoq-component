@@ -40,3 +40,9 @@
     * ECDSA384 - ES384
     * ECDSA521 - ES512
 * Support importing external keys and using for external integration
+* [ ] Cert management
+* OpenPGP support
+* Cert format support
+    * SSL/TLS with client side cert supporting and 3rd party software including go http server, nginx, apache, etc.
+    * SSH
+    * Email
