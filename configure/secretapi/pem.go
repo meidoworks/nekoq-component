@@ -17,6 +17,23 @@ func NewPemTool() *PemTool {
 	return &PemTool{}
 }
 
+func (p *PemTool) EncodeCustom(data []byte, typeName string) ([]byte, error) {
+	block := &pem.Block{
+		Type:  typeName,
+		Bytes: data,
+	}
+	pemData := pem.EncodeToMemory(block)
+	return pemData, nil
+}
+
+func (p *PemTool) ParseCustom(data []byte) ([]byte, error) {
+	block, _ := pem.Decode(data)
+	if block == nil {
+		return nil, errors.New("pem decode failed")
+	}
+	return block.Bytes, nil
+}
+
 func (p *PemTool) EncodeKeySet(ks *KeySet) ([]byte, error) {
 	data, err := ks.SaveAsBytes()
 	if err != nil {

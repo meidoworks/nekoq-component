@@ -52,3 +52,4 @@
     * Email
 * Custom cert signature algorithm
 * Support encrypted unseal local key file for security
+* Support expire time in related use cases
