@@ -17,6 +17,31 @@ func NewPemTool() *PemTool {
 	return &PemTool{}
 }
 
+func (p *PemTool) EncodeKeySet(ks *KeySet) ([]byte, error) {
+	data, err := ks.SaveAsBytes()
+	if err != nil {
+		return nil, err
+	}
+	ksBlock := &pem.Block{
+		Type:  "KeySet",
+		Bytes: data,
+	}
+	pemData := pem.EncodeToMemory(ksBlock)
+	return pemData, nil
+}
+
+func (p *PemTool) ParseKeySet(data []byte) (*KeySet, error) {
+	block, _ := pem.Decode(data)
+	if block == nil {
+		return nil, errors.New("pem decode failed")
+	}
+	ks := &KeySet{}
+	if err := ks.LoadFromBytes(block.Bytes); err != nil {
+		return nil, err
+	}
+	return ks, nil
+}
+
 func (p *PemTool) EncodeCertificateRevocationList(csr []byte) ([]byte, error) {
 	certBlock := &pem.Block{
 		Type:  "X509 CRL",

@@ -14,6 +14,8 @@ import (
 	"github.com/meidoworks/nekoq-component/configure/secretapi"
 )
 
+var _ secretapi.KeyStorage = new(PostgresKeyStorage)
+
 type PostgresKeyStorage struct {
 	secretapi.DefaultKeyStorage
 
@@ -85,7 +87,7 @@ func (p *PostgresKeyStorage) SetupUnsealProviderAndWait(provider secretapi.Unsea
 			return err
 		}
 		// initialize database
-		r, err := p.db.Exec("insert into secret_level1(key_name, key_version, key_status, use_key_id, key_encrypted, expired_time, time_created, time_update) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+		r, err := p.db.Exec("insert into secret_level1(key_name, key_version, key_status, use_key_id, key_encrypted, expired_time, time_created, time_updated) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
 			secretapi.TokenName, 1, 0, keyId, encToken, math.MaxInt64, unixtimestamp, unixtimestamp)
 		if err != nil {
 			return err
@@ -162,7 +164,7 @@ func (p *PostgresKeyStorage) StoreLevel1KeySet(name string, key *secretapi.KeySe
 		// insert new key
 		r, err := tx.Exec(`
 insert into secret_level1 (key_name, key_version, key_status, use_key_id, key_encrypted, expired_time,
-                           time_created, time_update)
+                           time_created, time_updated)
 values ($1, $2, $3, $4, $5, $6, $7, $8);`, name, nextVersion, 0, keyId, keyData, expireTime, now, now)
 		if err != nil {
 			return err
@@ -175,7 +177,7 @@ values ($1, $2, $3, $4, $5, $6, $7, $8);`, name, nextVersion, 0, keyId, keyData,
 		// readonly old keys
 		r, err = tx.Exec(`
 update secret_level1
-set key_status = 1, time_update = $1
+set key_status = 1, time_updated = $1
 where key_name = $2 and key_version < $3`, now, name, nextVersion)
 		if err != nil {
 			return err
@@ -313,7 +315,7 @@ func (p *PostgresKeyStorage) StoreLevel2KeySet(level1KeyName, name string, key *
 		// insert new key
 		r, err := tx.Exec(`
 insert into secret_level2 (key_name, key_version, key_status, use_key_id, key_type, key_encrypted, expired_time,
-                           time_created, time_update)
+                           time_created, time_updated)
 values ($1, $2, 0, $3, $4, $5, $6, $7, $8)`, name, nextVersion, lv1KeyId, keyType.String(), keyData, expireTime, now, now)
 		if err != nil {
 			return err
@@ -326,7 +328,7 @@ values ($1, $2, 0, $3, $4, $5, $6, $7, $8)`, name, nextVersion, lv1KeyId, keyTyp
 		// readonly old keys
 		r, err = tx.Exec(`
 update secret_level2
-set key_status = 1, time_update = $1
+set key_status = 1, time_updated = $1
 where key_name = $2 and key_version < $3`, now, name, nextVersion)
 		if err != nil {
 			return err
@@ -431,7 +433,7 @@ func (p *PostgresKeyStorage) StoreL2DataKey(l1KeyName, name string, kt secretapi
 
 	r, err := tx.Exec(`
 insert into secret_level2 (key_name, key_version, key_status, use_key_id, key_type, key_encrypted, expired_time,
-                           time_created, time_update)
+                           time_created, time_updated)
 values ($1, $2, 0, $3, $4, $5, $6, $7, $8)`, name, nextVersion, lv1KeyId, keyType.String(), ciphertext, expireTime, now, now)
 	if err != nil {
 		return err
@@ -444,7 +446,7 @@ values ($1, $2, 0, $3, $4, $5, $6, $7, $8)`, name, nextVersion, lv1KeyId, keyTyp
 
 	r, err = tx.Exec(`
 update secret_level2
-set key_status = 1, time_update = $1
+set key_status = 1, time_updated = $1
 where key_name = $2 and key_version < $3`, now, name, nextVersion)
 	if err != nil {
 		return err

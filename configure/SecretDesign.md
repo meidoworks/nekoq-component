@@ -3,6 +3,8 @@
 ## Note List
 
 * Disable swap to avoid sensitive memory to be swapped into hard disk, causing key leaking issue.
+* For issuing certificate purpose, Secret won't provide all possible suites as supported in other tools such as openssl,
+  while it focuses on providing common used and secure suites to simply the use as CA.
 
 ## Supported features
 
@@ -40,9 +42,13 @@
     * ECDSA384 - ES384
     * ECDSA521 - ES512
 * Support importing external keys and using for external integration
-* [ ] Cert management
+* [x] Cert management
+    * Cert tools to create new certs
+    * Cert storage to securely store certs
 * OpenPGP support
 * Cert format support
     * SSL/TLS with client side cert supporting and 3rd party software including go http server, nginx, apache, etc.
     * SSH
     * Email
+* Custom cert signature algorithm
+* Support encrypted unseal local key file for security
