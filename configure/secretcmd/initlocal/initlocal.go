@@ -83,7 +83,7 @@ func decryptData(result []byte, password string) []byte {
 	return plaintext
 }
 
-// This tool is used for the two purpose:
+// This tool is used for the two purposes:
 // 1. Generate new KeySet in the format of PEM
 // 2. Convert the PEM KeySet file into available file for Unseal Local Provider
 func main() {

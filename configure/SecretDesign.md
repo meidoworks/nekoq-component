@@ -53,3 +53,7 @@
 * Custom cert signature algorithm
 * Support encrypted unseal local key file for security
 * Support expire time in related use cases
+* Support post-quantum cryptography
+* Crypto libraries
+    * https://github.com/golang/crypto
+    * https://github.com/cloudflare/circl
