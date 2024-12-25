@@ -3,6 +3,7 @@ package secretimpl_test
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/meidoworks/nekoq-component/configure/secretaddon"
 	"github.com/meidoworks/nekoq-component/configure/secretapi"
@@ -20,9 +21,10 @@ func TestJwtCase1(t *testing.T) {
 	}
 	addonTool := secretaddon.NewAddonTool(keyStorage)
 
-	jwtToken, err := addonTool.SignJwtToken(jwtKey, secretaddon.JwtAlgHS256, map[string]interface{}{
+	jwtToken, err := addonTool.SignJwtToken(jwtKey, secretaddon.JwtAlgHS256, secretaddon.JwtClaims{
 		"custome_data": "hello world!!!",
-	})
+	}.SetID("id_111").SetIssuer("TestIssuer").SetSubject("TestSubject").SetAudience([]string{"TestAudience1", "TestAudience2"}).
+		SetIat(time.Now()).SetExp(time.Now().Add(time.Hour)).SetNbf(time.Now()))
 	if err != nil {
 		t.Fatal(err)
 	}

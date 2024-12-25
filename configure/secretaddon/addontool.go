@@ -3,6 +3,7 @@ package secretaddon
 import (
 	"errors"
 	"strconv"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 
@@ -35,6 +36,43 @@ const (
 	JwtAlgES512 JwtAlg = "ES512"
 )
 
+type JwtClaims map[string]interface{}
+
+func (j JwtClaims) SetIssuer(issuer string) JwtClaims {
+	j["iss"] = issuer
+	return j
+}
+
+func (j JwtClaims) SetSubject(subject string) JwtClaims {
+	j["sub"] = subject
+	return j
+}
+
+func (j JwtClaims) SetAudience(audiences []string) JwtClaims {
+	j["aud"] = audiences
+	return j
+}
+
+func (j JwtClaims) SetExp(t time.Time) JwtClaims {
+	j["exp"] = t.Truncate(time.Second).Unix()
+	return j
+}
+
+func (j JwtClaims) SetNbf(t time.Time) JwtClaims {
+	j["nbf"] = t.Truncate(time.Second).Unix()
+	return j
+}
+
+func (j JwtClaims) SetIat(t time.Time) JwtClaims {
+	j["iat"] = t.Truncate(time.Second).Unix()
+	return j
+}
+
+func (j JwtClaims) SetID(id string) JwtClaims {
+	j["jti"] = id
+	return j
+}
+
 type AddonTool struct {
 	keyStorage secretapi.KeyStorage
 }
@@ -45,7 +83,7 @@ func NewAddonTool(keyStorage secretapi.KeyStorage) *AddonTool {
 	}
 }
 
-func (a *AddonTool) SignJwtToken(keyName string, jwtAlg JwtAlg, claims map[string]interface{}) (string, error) {
+func (a *AddonTool) SignJwtToken(keyName string, jwtAlg JwtAlg, claims JwtClaims) (string, error) {
 	keyId, keyType, key, err := a.keyStorage.FetchL2DataKey(keyName)
 	if err != nil {
 		return "", err
@@ -97,7 +135,7 @@ func (a *AddonTool) VerifyJwtToken(tokenString string) (map[string]interface{}, 
 	return nil, errors.New("invalid token")
 }
 
-func convertClaims(claims map[string]interface{}) jwt.MapClaims {
+func convertClaims(claims JwtClaims) jwt.MapClaims {
 	m := jwt.MapClaims{}
 	for k, v := range claims {
 		m[k] = v
