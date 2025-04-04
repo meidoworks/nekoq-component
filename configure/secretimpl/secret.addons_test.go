@@ -21,7 +21,7 @@ func TestJwtCase1(t *testing.T) {
 	}
 	addonTool := secretaddon.NewAddonTool(keyStorage)
 
-	jwtToken, err := addonTool.SignJwtToken(jwtKey, secretaddon.JwtAlgHS256, secretaddon.JwtClaims{
+	jwtToken, err := addonTool.SignJwtToken(jwtKey, secretapi.JwtAlgHS256, secretaddon.JwtClaims{
 		"custome_data": "hello world!!!",
 	}.SetID("id_111").SetIssuer("TestIssuer").SetSubject("TestSubject").SetAudience([]string{"TestAudience1", "TestAudience2"}).
 		SetIat(time.Now()).SetExp(time.Now().Add(time.Hour)).SetNbf(time.Now()))
@@ -60,7 +60,7 @@ func TestJwtCase2(t *testing.T) {
 	}
 	addonTool := secretaddon.NewAddonTool(keyStorage)
 
-	jwtToken, err := addonTool.SignJwtToken(jwtKey, secretaddon.JwtAlgHS512, map[string]interface{}{
+	jwtToken, err := addonTool.SignJwtToken(jwtKey, secretapi.JwtAlgHS512, map[string]interface{}{
 		"custome_data": "hello world!!!",
 	})
 	if err != nil {
@@ -98,7 +98,7 @@ func TestJwtCase3(t *testing.T) {
 	}
 	addonTool := secretaddon.NewAddonTool(keyStorage)
 
-	jwtToken, err := addonTool.SignJwtToken(jwtKey, secretaddon.JwtAlgHS384, map[string]interface{}{
+	jwtToken, err := addonTool.SignJwtToken(jwtKey, secretapi.JwtAlgHS384, map[string]interface{}{
 		"custome_data": "hello world!!!",
 	})
 	if err != nil {
@@ -135,7 +135,7 @@ func TestJwtCase4(t *testing.T) {
 		{"test_addon_rsa3072_key", secretapi.KeyRSA3072},
 		{"test_addon_rsa4096_key", secretapi.KeyRSA4096},
 	}
-	algList := []secretaddon.JwtAlg{secretaddon.JwtAlgRS256, secretaddon.JwtAlgRS384, secretaddon.JwtAlgRS512}
+	algList := []secretaddon.JwtAlg{secretapi.JwtAlgRS256, secretapi.JwtAlgRS384, secretapi.JwtAlgRS512}
 
 	cipherTool := secretapi.NewLevel2CipherTool(keyStorage, secretapi.DefaultKeyGen, "test_case")
 	addonTool := secretaddon.NewAddonTool(keyStorage)
@@ -193,7 +193,7 @@ func TestJwtCase5(t *testing.T) {
 		{"test_addon_rsa3072_key", secretapi.KeyRSA3072},
 		{"test_addon_rsa4096_key", secretapi.KeyRSA4096},
 	}
-	algList := []secretaddon.JwtAlg{secretaddon.JwtAlgPS256, secretaddon.JwtAlgPS384, secretaddon.JwtAlgPS512}
+	algList := []secretaddon.JwtAlg{secretapi.JwtAlgPS256, secretapi.JwtAlgPS384, secretapi.JwtAlgPS512}
 
 	cipherTool := secretapi.NewLevel2CipherTool(keyStorage, secretapi.DefaultKeyGen, "test_case")
 	addonTool := secretaddon.NewAddonTool(keyStorage)
@@ -251,9 +251,9 @@ func TestJwtCase6(t *testing.T) {
 		KeyType secretapi.KeyType
 		JwtAlg  secretaddon.JwtAlg
 	}{
-		{"test_addon_ecdsa256_key", secretapi.KeyECDSA256, secretaddon.JwtAlgES256},
-		{"test_addon_ecdsa384_key", secretapi.KeyECDSA384, secretaddon.JwtAlgES384},
-		{"test_addon_ecdsa521_key", secretapi.KeyECDSA521, secretaddon.JwtAlgES512},
+		{"test_addon_ecdsa256_key", secretapi.KeyECDSA256, secretapi.JwtAlgES256},
+		{"test_addon_ecdsa384_key", secretapi.KeyECDSA384, secretapi.JwtAlgES384},
+		{"test_addon_ecdsa521_key", secretapi.KeyECDSA521, secretapi.JwtAlgES512},
 	}
 
 	cipherTool := secretapi.NewLevel2CipherTool(keyStorage, secretapi.DefaultKeyGen, "test_case")

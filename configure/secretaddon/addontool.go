@@ -19,22 +19,7 @@ const (
 	JwtHeaderAlg = "alg"
 )
 
-type JwtAlg string
-
-const (
-	JwtAlgHS256 JwtAlg = "HS256"
-	JwtAlgHS384 JwtAlg = "HS384"
-	JwtAlgHS512 JwtAlg = "HS512"
-	JwtAlgRS256 JwtAlg = "RS256"
-	JwtAlgRS384 JwtAlg = "RS384"
-	JwtAlgRS512 JwtAlg = "RS512"
-	JwtAlgPS256 JwtAlg = "PS256"
-	JwtAlgPS384 JwtAlg = "PS384"
-	JwtAlgPS512 JwtAlg = "PS512"
-	JwtAlgES256 JwtAlg = "ES256"
-	JwtAlgES384 JwtAlg = "ES384"
-	JwtAlgES512 JwtAlg = "ES512"
-)
+type JwtAlg = secretapi.JwtAlg
 
 type JwtClaims map[string]interface{}
 
@@ -70,6 +55,13 @@ func (j JwtClaims) SetIat(t time.Time) JwtClaims {
 
 func (j JwtClaims) SetID(id string) JwtClaims {
 	j["jti"] = id
+	return j
+}
+
+func (j JwtClaims) FromJwtData(data secretapi.JwtData) JwtClaims {
+	for key, value := range data {
+		j[key] = value
+	}
 	return j
 }
 
@@ -149,14 +141,14 @@ func jwtVerificationKeyMapping(keyType secretapi.KeyType, alg JwtAlg, key []byte
 	// Automatically determine jwt alg using internal KeyType and convert key to specific type
 	switch keyType {
 	case secretapi.KeyGeneral64B:
-		if alg != JwtAlgHS256 {
+		if alg != secretapi.JwtAlgHS256 {
 			return nil, nil, errors.New("invalid algorithm")
 		}
 		return jwt.SigningMethodHS256, key, nil
 	case secretapi.KeyGeneral128B:
-		if alg == JwtAlgHS384 {
+		if alg == secretapi.JwtAlgHS384 {
 			return jwt.SigningMethodHS384, key, nil
-		} else if alg == JwtAlgHS512 {
+		} else if alg == secretapi.JwtAlgHS512 {
 			return jwt.SigningMethodHS512, key, nil
 		}
 		return nil, nil, errors.New("invalid algorithm")
@@ -172,17 +164,17 @@ func jwtVerificationKeyMapping(keyType secretapi.KeyType, alg JwtAlg, key []byte
 			return nil, nil, err
 		}
 		switch alg {
-		case JwtAlgRS256:
+		case secretapi.JwtAlgRS256:
 			return jwt.SigningMethodRS256, priKey.Public(), nil
-		case JwtAlgRS384:
+		case secretapi.JwtAlgRS384:
 			return jwt.SigningMethodRS384, priKey.Public(), nil
-		case JwtAlgRS512:
+		case secretapi.JwtAlgRS512:
 			return jwt.SigningMethodRS512, priKey.Public(), nil
-		case JwtAlgPS256:
+		case secretapi.JwtAlgPS256:
 			return jwt.SigningMethodPS256, priKey.Public(), nil
-		case JwtAlgPS384:
+		case secretapi.JwtAlgPS384:
 			return jwt.SigningMethodPS384, priKey.Public(), nil
-		case JwtAlgPS512:
+		case secretapi.JwtAlgPS512:
 			if keyType == secretapi.KeyRSA1024 {
 				return nil, nil, ErrJwtInvalidAlgCombination
 			}
@@ -191,7 +183,7 @@ func jwtVerificationKeyMapping(keyType secretapi.KeyType, alg JwtAlg, key []byte
 			return nil, nil, errors.New("invalid algorithm")
 		}
 	case secretapi.KeyECDSA256:
-		if alg != JwtAlgES256 {
+		if alg != secretapi.JwtAlgES256 {
 			return nil, nil, errors.New("invalid key type")
 		}
 		priKey, err := secretapi.NewPemTool().ParseECDSAPrivateKey(key)
@@ -200,7 +192,7 @@ func jwtVerificationKeyMapping(keyType secretapi.KeyType, alg JwtAlg, key []byte
 		}
 		return jwt.SigningMethodES256, priKey.Public(), nil
 	case secretapi.KeyECDSA384:
-		if alg != JwtAlgES384 {
+		if alg != secretapi.JwtAlgES384 {
 			return nil, nil, errors.New("invalid key type")
 		}
 		priKey, err := secretapi.NewPemTool().ParseECDSAPrivateKey(key)
@@ -209,7 +201,7 @@ func jwtVerificationKeyMapping(keyType secretapi.KeyType, alg JwtAlg, key []byte
 		}
 		return jwt.SigningMethodES384, priKey.Public(), nil
 	case secretapi.KeyECDSA521:
-		if alg != JwtAlgES512 {
+		if alg != secretapi.JwtAlgES512 {
 			return nil, nil, errors.New("invalid key type")
 		}
 		priKey, err := secretapi.NewPemTool().ParseECDSAPrivateKey(key)
@@ -226,14 +218,14 @@ func jwtSigningKeyMapping(keyType secretapi.KeyType, alg JwtAlg, key []byte) (jw
 	// Automatically determine jwt alg using internal KeyType and convert key to specific type
 	switch keyType {
 	case secretapi.KeyGeneral64B:
-		if alg != JwtAlgHS256 {
+		if alg != secretapi.JwtAlgHS256 {
 			return nil, nil, errors.New("invalid key type")
 		}
 		return jwt.SigningMethodHS256, key, nil
 	case secretapi.KeyGeneral128B:
-		if alg == JwtAlgHS512 {
+		if alg == secretapi.JwtAlgHS512 {
 			return jwt.SigningMethodHS512, key, nil
-		} else if alg == JwtAlgHS384 {
+		} else if alg == secretapi.JwtAlgHS384 {
 			return jwt.SigningMethodHS384, key, nil
 		}
 		return nil, nil, errors.New("invalid key type")
@@ -249,17 +241,17 @@ func jwtSigningKeyMapping(keyType secretapi.KeyType, alg JwtAlg, key []byte) (jw
 			return nil, nil, err
 		}
 		switch alg {
-		case JwtAlgRS256:
+		case secretapi.JwtAlgRS256:
 			return jwt.SigningMethodRS256, priKey, nil
-		case JwtAlgRS384:
+		case secretapi.JwtAlgRS384:
 			return jwt.SigningMethodRS384, priKey, nil
-		case JwtAlgRS512:
+		case secretapi.JwtAlgRS512:
 			return jwt.SigningMethodRS512, priKey, nil
-		case JwtAlgPS256:
+		case secretapi.JwtAlgPS256:
 			return jwt.SigningMethodPS256, priKey, nil
-		case JwtAlgPS384:
+		case secretapi.JwtAlgPS384:
 			return jwt.SigningMethodPS384, priKey, nil
-		case JwtAlgPS512:
+		case secretapi.JwtAlgPS512:
 			if keyType == secretapi.KeyRSA1024 {
 				return nil, nil, ErrJwtInvalidAlgCombination
 			}
@@ -268,7 +260,7 @@ func jwtSigningKeyMapping(keyType secretapi.KeyType, alg JwtAlg, key []byte) (jw
 			return nil, nil, errors.New("invalid algorithm")
 		}
 	case secretapi.KeyECDSA256:
-		if alg != JwtAlgES256 {
+		if alg != secretapi.JwtAlgES256 {
 			return nil, nil, errors.New("invalid key type")
 		}
 		priKey, err := secretapi.NewPemTool().ParseECDSAPrivateKey(key)
@@ -277,7 +269,7 @@ func jwtSigningKeyMapping(keyType secretapi.KeyType, alg JwtAlg, key []byte) (jw
 		}
 		return jwt.SigningMethodES256, priKey, nil
 	case secretapi.KeyECDSA384:
-		if alg != JwtAlgES384 {
+		if alg != secretapi.JwtAlgES384 {
 			return nil, nil, errors.New("invalid key type")
 		}
 		priKey, err := secretapi.NewPemTool().ParseECDSAPrivateKey(key)
@@ -286,7 +278,7 @@ func jwtSigningKeyMapping(keyType secretapi.KeyType, alg JwtAlg, key []byte) (jw
 		}
 		return jwt.SigningMethodES384, priKey, nil
 	case secretapi.KeyECDSA521:
-		if alg != JwtAlgES512 {
+		if alg != secretapi.JwtAlgES512 {
 			return nil, nil, errors.New("invalid key type")
 		}
 		priKey, err := secretapi.NewPemTool().ParseECDSAPrivateKey(key)

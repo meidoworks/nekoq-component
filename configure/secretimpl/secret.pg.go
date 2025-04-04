@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
+	"gorm.io/gorm"
 
 	"github.com/meidoworks/nekoq-component/configure/secretapi"
 )
@@ -19,7 +20,8 @@ var _ secretapi.KeyStorage = new(PostgresKeyStorage)
 type PostgresKeyStorage struct {
 	secretapi.DefaultKeyStorage
 
-	db *sql.DB
+	db    *sql.DB
+	ormDb *gorm.DB
 
 	unsealed       int32
 	unsealProvider secretapi.UnsealProvider
@@ -40,12 +42,31 @@ func NewPostgresKeyStorage(pgUrl string) (*PostgresKeyStorage, error) {
 	}
 	connector := stdlib.GetConnector(*conf)
 	db := sql.OpenDB(connector)
+	var finalOrmDb *gorm.DB
+	if ormDb, err := initOrm(db); err != nil {
+		defer func(db *sql.DB) {
+			_ = db.Close()
+		}(db)
+		finalOrmDb = nil
+		return nil, err
+	} else {
+		finalOrmDb = ormDb
+	}
 
 	ks := &PostgresKeyStorage{
 		db:       db,
+		ormDb:    finalOrmDb,
 		unsealed: 0,
 	}
 	return ks, nil
+}
+
+func initOrm(db *sql.DB) (*gorm.DB, error) {
+	ormDb, err := orm(db)
+	if err != nil {
+		return nil, err
+	}
+	return ormDb, nil
 }
 
 func (p *PostgresKeyStorage) Startup() error {
