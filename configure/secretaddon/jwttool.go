@@ -1,24 +1,13 @@
 package secretaddon
 
 import (
+	"github.com/meidoworks/nekoq-component/configure/permissions"
 	"github.com/meidoworks/nekoq-component/configure/secretapi"
-)
-
-type PermissionType string
-
-const (
-	PermissionRead   PermissionType = "read:"
-	PermissionWrite  PermissionType = "write:"
-	PermissionManage PermissionType = "manage:"
-	PermissionDelete PermissionType = "delete:"
-	PermissionCreate PermissionType = "create:"
-	PermissionUpdate PermissionType = "update:"
-	PermissionList   PermissionType = "list:"
 )
 
 type PermissionsList map[string]struct{}
 
-type PermissionResourceList map[string]PermissionType
+type PermissionResourceList map[string]permissions.PermissionType
 
 func (p PermissionResourceList) Dedup() PermissionsList {
 	dedup := make(PermissionsList)
@@ -26,6 +15,13 @@ func (p PermissionResourceList) Dedup() PermissionsList {
 		dedup[string(val)+key] = struct{}{}
 	}
 	return dedup
+}
+
+func (p PermissionResourceList) Add(perms ...permissions.PermissionDef) PermissionResourceList {
+	for _, v := range perms {
+		p[v.Name] = v.Operation
+	}
+	return p
 }
 
 const (
@@ -47,10 +43,13 @@ func AllPermissionOperator(matched, nonMatched, additional PermissionsList) bool
 }
 
 type JwtTool struct {
+	jwtVerifier secretapi.JwtVerifier
 }
 
-func NewJwtTool() *JwtTool {
-	return &JwtTool{}
+func NewJwtTool(jwtVerifier secretapi.JwtVerifier) *JwtTool {
+	return &JwtTool{
+		jwtVerifier: jwtVerifier,
+	}
 }
 
 func (j *JwtTool) SetupPermissions(data secretapi.JwtData, perms PermissionResourceList) {
@@ -83,4 +82,12 @@ func (j *JwtTool) VerifyPermissions(data secretapi.JwtData, allowed PermissionRe
 
 	// operator apply
 	return op(matched, dedup, permissions)
+}
+
+func (j *JwtTool) VerifyPermissionsOnJwtToken(token string, allowed PermissionResourceList, op PermissionOperator) (bool, error) {
+	jwtData, err := j.jwtVerifier.VerifyJwt(token)
+	if err != nil {
+		return false, err
+	}
+	return j.VerifyPermissions(jwtData, allowed, op), nil
 }

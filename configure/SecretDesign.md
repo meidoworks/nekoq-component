@@ -41,6 +41,8 @@
     * ECDSA256 - ES256
     * ECDSA384 - ES384
     * ECDSA521 - ES512
+* [x] Permission Validation
+    * With Jwt
 * Support importing external keys and using for external integration
 * [x] Cert management
     * Cert tools to create new certs
