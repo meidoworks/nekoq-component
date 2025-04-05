@@ -28,7 +28,7 @@ func NewDemoController() *DemoController {
 				middleware.Recoverer,
 			},
 			RequestValidators: RequestValidators{
-				AcceptContentTypeFor("application/json"),
+				AllowContentTypeFor("application/json"),
 			},
 		},
 	}

@@ -83,7 +83,6 @@ func (c *ChiApiStub) RegisterControllers(controllers ...internalCheck) error {
 			u = url
 		}
 		c.addItem(m, u, controller.middlewares(), controller.requestValidators(), controller)
-		return nil
 	}
 	return nil
 }

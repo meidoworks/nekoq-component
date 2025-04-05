@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func AcceptContentTypeFor(contentTypes ...string) func(w http.ResponseWriter, r *http.Request) Render {
+func AllowContentTypeFor(contentTypes ...string) func(w http.ResponseWriter, r *http.Request) Render {
 	ctm := map[string]struct{}{}
 	for _, ct := range contentTypes {
 		ctm[ct] = struct{}{}

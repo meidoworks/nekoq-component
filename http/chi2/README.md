@@ -13,4 +13,10 @@
 ## API Design
 
 * Put URL and Handler together
+* Configure and initialize controller in single place
+
+## Extra items
+
+* [ ] Middleware dedup
+* [ ] Builtin middleware configuration collection
 

@@ -1,6 +1,9 @@
 package chi2
 
-import "net/http"
+import (
+	"io"
+	"net/http"
+)
 
 var (
 	httpMethods = map[string]struct{}{
@@ -16,6 +19,10 @@ var (
 	}
 )
 
+type HttpController interface {
+	HandleHttp(w http.ResponseWriter, r *http.Request) Render
+}
+
 type internalCheck interface {
 	_chi_internal1_779960()
 	_chi_internal2_988103()
@@ -24,12 +31,13 @@ type internalCheck interface {
 	middlewares() Middlewares
 	requestValidators() RequestValidators
 
-	HandleHttp(w http.ResponseWriter, r *http.Request) Render
+	HttpController
 }
 
 type Controller struct {
 	Middlewares
 	RequestValidators
+	BodyParser func(r io.Reader) (any, error)
 }
 
 func (c Controller) middlewares() Middlewares {
@@ -50,6 +58,10 @@ func (c Controller) _chi_internal2_988103() {
 
 func (c Controller) _chi_internal3_295800() {
 	panic("implement me")
+}
+
+func (c Controller) ParseBody(r *http.Request) (any, error) {
+	return c.BodyParser(r.Body)
 }
 
 type Middlewares []func(http.Handler) http.Handler
