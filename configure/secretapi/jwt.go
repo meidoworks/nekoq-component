@@ -27,6 +27,8 @@ type JwtOption struct {
 	ServerControl bool
 	// Time-to-live
 	TTL time.Duration
+	// One time JWT token
+	OneTime bool
 }
 
 type JwtSigner interface {

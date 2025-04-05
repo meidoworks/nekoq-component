@@ -5,6 +5,14 @@ type PermissionDef struct {
 	Operation PermissionType
 }
 
+func (p PermissionDef) Equals(p2 PermissionDef) bool {
+	return p.Name == p2.Name && p.Operation == p2.Operation
+}
+
+func (p PermissionDef) ToString() string {
+	return p.Operation.Val() + p.Name
+}
+
 type PermissionType string
 
 const (
