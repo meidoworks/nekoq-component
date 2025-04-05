@@ -23,6 +23,10 @@ const (
 	CertKeyLevelLevel2Custom CertKeyLevel = 2999
 )
 
+const (
+	CertKeyLevelExternal CertKeyLevel = iota + 9001
+)
+
 type CertLevelType int
 
 const (
@@ -66,6 +70,7 @@ type CertStorage interface {
 
 	LoadCertByName(certName string, certLevelType CertLevelType) (*x509.Certificate, CertKeyInfo, error)
 	LoadCertById(certSerialNumber CertSerialNumber) (*x509.Certificate, CertLevelType, CertKeyInfo, error)
+	LoadParentCertByCertId(currentCertSerialNumber CertSerialNumber) (*x509.Certificate, CertLevelType, CertKeyInfo, error)
 
 	NextCertSerialNumber() (CertSerialNumber, error)
 }

@@ -85,6 +85,12 @@ func (c *CertTool) SetupDefaultServerCertKeyUsage() *CertTool {
 	return c
 }
 
+func (c *CertTool) SetupDefaultClientCertKeyUsage() *CertTool {
+	c.EndUserCertKeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageContentCommitment | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyAgreement
+	c.EndUserCertExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}
+	return c
+}
+
 func (c *CertTool) createCACert(req *CACertReq, caCert *x509.Certificate, certKeyPair, signerKeyPair *CertKeyPair, maxPath int) (*x509.Certificate, error) {
 	// max path length settings
 	maxPathZero := maxPath == 0
