@@ -59,3 +59,22 @@
 * Crypto libraries
     * https://github.com/golang/crypto
     * https://github.com/cloudflare/circl
+
+## Secret Http/Https API Bearer Token General Rules
+
+Workflow of token usage
+
+```text
+Step 1:
+    Generate temporary jwt admin token via bootstrap tools with permission: manage:jwt.admin
+    Required permission: (bootstrap)
+Step 2:
+    Generate jwt admin token via API: /api/v1/secret/jwt/admin/new
+    Required permission: (manage:jwt.admin)
+Step 3:
+    Generate jwt normal token with specified permissions via API: /api/v1/secret/jwt/new
+    Required permission: (manage:jwt.new)
+Step 4:
+    Invoke APIs
+    Required permission: (based on API requirement)
+```

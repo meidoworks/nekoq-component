@@ -7,6 +7,8 @@ var (
 	SecretJwtAdmin  = PermissionDef{"jwt.admin", PermissionManage}
 	SecretJwtNew    = PermissionDef{"jwt.new", PermissionWrite}
 	SecretJwtVerify = PermissionDef{"jwt.verify", PermissionRead}
+
+	SecretKeyAdmin = PermissionDef{"key.admin", PermissionManage}
 )
 
 var (
@@ -24,9 +26,13 @@ func GetPermissionDef(s string) (PermissionDef, bool) {
 
 func init() {
 	allPermissions = map[string]PermissionDef{}
+
 	addPermissionDefMap(SecretCertAdmin)
 	addPermissionDefMap(SecretCertList)
+
 	addPermissionDefMap(SecretJwtAdmin)
 	addPermissionDefMap(SecretJwtNew)
 	addPermissionDefMap(SecretJwtVerify)
+
+	addPermissionDefMap(SecretKeyAdmin)
 }
