@@ -166,19 +166,26 @@ func (k *KeyManageGetKeyById) HandleHttp(w http.ResponseWriter, r *http.Request)
 		return chi2.NewErrRender(err)
 	}
 	var keyTypeSeries string
+	var format = "unknown"
 	switch kt {
 	case secretapi.KeyKeySet:
 		keyTypeSeries = "keyset"
+		format = "pem"
 	case secretapi.KeyAES128, secretapi.KeyAES192, secretapi.KeyAES256:
 		keyTypeSeries = "aes"
+		format = "raw"
 	case secretapi.KeyRSA1024, secretapi.KeyRSA2048, secretapi.KeyRSA3072, secretapi.KeyRSA4096:
 		keyTypeSeries = "rsa"
+		format = "pem"
 	case secretapi.KeyECDSA224, secretapi.KeyECDSA256, secretapi.KeyECDSA384, secretapi.KeyECDSA521:
 		keyTypeSeries = "ecdsa"
+		format = "pem"
 	case secretapi.KeyEd25519:
 		keyTypeSeries = "ed25519" //FIXME note: ed25519 key may not be independently stored
+		format = "raw"
 	case secretapi.KeyGeneral64B, secretapi.KeyGeneral128B:
 		keyTypeSeries = "general"
+		format = "raw"
 	default:
 		return chi2.NewErrRender(errors.New("unsupported key type"))
 	}
@@ -186,6 +193,7 @@ func (k *KeyManageGetKeyById) HandleHttp(w http.ResponseWriter, r *http.Request)
 	return chi2.NewJsonOkRender(map[string]interface{}{
 		"key_type": keyTypeSeries,
 		"key":      key,
+		"format":   format,
 	})
 }
 

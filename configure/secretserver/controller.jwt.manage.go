@@ -106,7 +106,7 @@ func (j *JwtManageCreateNewJwt) HandleHttp(w http.ResponseWriter, r *http.Reques
 		return chi2.NewErrRender(err)
 	}
 	req := obj.(*jwtNewReq)
-	if len(req.Permissions) == 0 {
+	if len(req.Permissions) == 0 || len(req.Permissions) > MaxPermissionsInSingleToken { // limit the count to reduce the size
 		return chi2.NewStatusRender(http.StatusBadRequest)
 	}
 
