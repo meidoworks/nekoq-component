@@ -71,6 +71,7 @@ type CertStorage interface {
 	LoadCertByName(certName string, certLevelType CertLevelType) (*x509.Certificate, CertKeyInfo, error)
 	LoadCertById(certSerialNumber CertSerialNumber) (*x509.Certificate, CertLevelType, CertKeyInfo, error)
 	LoadParentCertByCertId(currentCertSerialNumber CertSerialNumber) (*x509.Certificate, CertLevelType, CertKeyInfo, error)
+	LoadCertChainByName(certName string, certLevelType CertLevelType) ([]*x509.Certificate, CertKeyInfo, error)
 
 	NextCertSerialNumber() (CertSerialNumber, error)
 }

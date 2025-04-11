@@ -59,6 +59,7 @@
 * Crypto libraries
     * https://github.com/golang/crypto
     * https://github.com/cloudflare/circl
+* [x] Http APIs
 
 ## Secret Http/Https API Bearer Token General Rules
 

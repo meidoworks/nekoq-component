@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 
@@ -334,5 +335,106 @@ func NewCertManageCreateCertReq(verifier secretapi.JwtVerifier, keyStorage secre
 			},
 		},
 		keyStorage: keyStorage,
+	}
+}
+
+// CertManageGetCert gets cert, private key and ca if all maintained by secret
+type CertManageGetCert struct {
+	chi2.Controller
+	Method string `method:"GET"`
+	URL    string `url:"/api/v1/secret/cert/name/{cert_name}"`
+
+	keyStorage  secretapi.KeyStorage
+	certStorage secretapi.CertStorage
+}
+
+func (c *CertManageGetCert) HandleHttp(w http.ResponseWriter, r *http.Request) chi2.Render {
+	certName := strings.TrimSpace(chi.URLParam(r, "cert_name"))
+	if certName == "" {
+		return chi2.NewStatusRender(http.StatusBadRequest)
+	}
+
+	certs, info, err := c.certStorage.LoadCertChainByName(certName, secretapi.CertLevelTypeCert)
+	if err != nil {
+		return chi2.NewErrRender(err)
+	}
+
+	certKeyIdNum, err := strconv.ParseInt(info.CertKeyId, 10, 64)
+	if err != nil {
+		return chi2.NewErrRender(err)
+	}
+	var certKey []byte
+	switch info.CertKeyLevel {
+	case secretapi.CertKeyLevelLevel2Custom:
+		_, key, err := c.keyStorage.LoadL2DataKeyById(certKeyIdNum)
+		if err != nil {
+			return chi2.NewErrRender(err)
+		}
+		certKey = key
+	case secretapi.CertKeyLevelLevel2Rsa:
+		keySet, err := c.keyStorage.LoadLevel2KeySetById(certKeyIdNum)
+		if err != nil {
+			return chi2.NewErrRender(err)
+		}
+		certKey = keySet.RSA4096
+	case secretapi.CertKeyLevelLevel2Ecdsa:
+		keySet, err := c.keyStorage.LoadLevel2KeySetById(certKeyIdNum)
+		if err != nil {
+			return chi2.NewErrRender(err)
+		}
+		certKey = keySet.ECDSA_P521
+	}
+
+	pemtool := new(secretapi.PemTool)
+	certStr, err := pemtool.EncodeCertificate(certs[0])
+	if err != nil {
+		return chi2.NewErrRender(err)
+	}
+	var caCerts []string
+	for _, v := range certs[1:] {
+		str, err := pemtool.EncodeCertificate(v)
+		if err != nil {
+			return chi2.NewErrRender(err)
+		}
+		caCerts = append(caCerts, string(str))
+	}
+	if len(certs) > 0 {
+		return chi2.NewJsonOkRender(map[string]interface{}{
+			"cert":    string(certStr),
+			"ca_list": caCerts,
+			"key":     string(certKey),
+		})
+	} else {
+		return chi2.NewJsonOkRender(map[string]interface{}{
+			"cert":    string(certStr),
+			"ca_list": caCerts,
+		})
+	}
+}
+
+func NewCertManageGetCert(verifier secretapi.JwtVerifier, keyStorage secretapi.KeyStorage, certStorage secretapi.CertStorage) *CertManageGetCert {
+	return &CertManageGetCert{
+		Controller: chi2.Controller{
+			Middlewares: chi2.Middlewares{
+				middleware.Logger,
+				middleware.RealIP,
+				middleware.Recoverer,
+			},
+			RequestValidators: chi2.RequestValidators{
+				chi2.AllowContentTypeFor("application/json"),
+				ValidateJwtToken(verifier, secretaddon.PermissionResourceList{}.
+					Add(permissions.SecretCertAdmin)),
+			},
+			BodyParser: func(r io.Reader) (any, error) {
+				req := new(createCertReqReq)
+				if err := render.DecodeJSON(r, req); err != nil {
+					return nil, err
+				}
+				return req, nil
+			},
+		},
+
+		keyStorage:  keyStorage,
+		certStorage: certStorage,
 	}
 }

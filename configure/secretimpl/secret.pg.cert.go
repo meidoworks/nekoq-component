@@ -171,6 +171,32 @@ func (p *PostgresKeyStorage) LoadParentCertByCertId(currentCertSerialNumber secr
 	return p.LoadCertById(secretapi.CertSerialNumber(parentCertId))
 }
 
+func (p *PostgresKeyStorage) LoadCertChainByName(certName string, certLevelType secretapi.CertLevelType) ([]*x509.Certificate, secretapi.CertKeyInfo, error) {
+	cert, info, err := p.LoadCertByName(certName, certLevelType)
+	if err != nil {
+		return nil, secretapi.CertKeyInfo{}, err
+	}
+
+	var certs = []*x509.Certificate{cert}
+	const MaxLevels = 10
+	var prevCert *x509.Certificate = cert
+	for i := 0; i < MaxLevels; i++ {
+		var sn secretapi.CertSerialNumber
+		sn.FromBigInt(prevCert.SerialNumber)
+		cert, _, _, err := p.LoadParentCertByCertId(sn)
+		if err != nil {
+			return nil, secretapi.CertKeyInfo{}, err
+		}
+		if cert == nil {
+			// reaching root
+			return certs, info, nil
+		}
+		prevCert = cert
+		certs = append(certs, cert)
+	}
+	return nil, secretapi.CertKeyInfo{}, errors.New("reaching max cert level")
+}
+
 func (p *PostgresKeyStorage) NextCertSerialNumber() (secretapi.CertSerialNumber, error) {
 	row := p.db.QueryRow("select nextval('cert_id_seq')")
 	if row == nil {

@@ -70,7 +70,8 @@ func initWriteApis(r *chi.Mux, req *SecretServerReq) error {
 	}
 	if err := stub.RegisterControllers(
 		NewCertManageCreateCertReq(req.JwtVerifier, req.KeyStorage),
-		NewCertManageCreateCert(req.JwtVerifier, req.KeyStorage, req.CertStorage)); err != nil {
+		NewCertManageCreateCert(req.JwtVerifier, req.KeyStorage, req.CertStorage),
+		NewCertManageGetCert(req.JwtVerifier, req.KeyStorage, req.CertStorage)); err != nil {
 		return err
 	}
 	if err := stub.RegisterControllers(
