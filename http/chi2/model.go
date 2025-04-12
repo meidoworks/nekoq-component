@@ -1,6 +1,7 @@
 package chi2
 
 import (
+	"errors"
 	"io"
 	"net/http"
 )
@@ -35,9 +36,14 @@ type internalCheck interface {
 }
 
 type Controller struct {
+	v1 any // v1 mechanisms
 	Middlewares
 	RequestValidators
-	BodyParser func(r io.Reader) (any, error)
+	BodyParser func(req *http.Request, r io.Reader) (any, error)
+
+	v2                   any // +v2 mechanisms
+	BodyVerifier         func(req *http.Request, r any) Render
+	NewCustomErrorRender func(error) Render
 }
 
 func (c Controller) middlewares() Middlewares {
@@ -61,7 +67,35 @@ func (c Controller) _chi_internal3_295800() {
 }
 
 func (c Controller) ParseBody(r *http.Request) (any, error) {
-	return c.BodyParser(r.Body)
+	return c.BodyParser(r, r.Body)
+}
+
+func (c Controller) HandleHttp(w http.ResponseWriter, r *http.Request) Render {
+	var model any
+	if obj, err := c.ParseBody(r); err != nil {
+		if c.NewCustomErrorRender == nil {
+			return NewErrRender(err)
+		} else {
+			return c.NewCustomErrorRender(err)
+		}
+	} else {
+		model = obj
+	}
+	if c.BodyVerifier == nil {
+		err := errors.New("body verifier is nil")
+		if c.NewCustomErrorRender == nil {
+			return NewErrRender(err)
+		} else {
+			return c.NewCustomErrorRender(err)
+		}
+	} else if r := c.BodyVerifier(r, model); r != nil {
+		return r
+	}
+	return c.HandleModel(model, w, r)
+}
+
+func (c Controller) HandleModel(model any, w http.ResponseWriter, r *http.Request) Render {
+	panic("implement me")
 }
 
 type Middlewares []func(http.Handler) http.Handler

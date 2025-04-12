@@ -131,7 +131,7 @@ func NewKeyManageGenerateNewKey(verifier secretapi.JwtVerifier, keyStorage secre
 				ValidateJwtToken(verifier, secretaddon.PermissionResourceList{}.
 					Add(permissions.SecretKeyAdmin)),
 			},
-			BodyParser: func(r io.Reader) (any, error) {
+			BodyParser: func(hr *http.Request, r io.Reader) (any, error) {
 				req := new(newKeyReq)
 				if err := render.DecodeJSON(r, req); err != nil {
 					return nil, err
@@ -210,7 +210,7 @@ func NewKeyManageGetKeyById(verifier secretapi.JwtVerifier, keyStorage secretapi
 				ValidateJwtToken(verifier, secretaddon.PermissionResourceList{}.
 					Add(permissions.SecretKeyAdmin)),
 			},
-			BodyParser: func(r io.Reader) (any, error) {
+			BodyParser: func(hr *http.Request, r io.Reader) (any, error) {
 				req := new(newKeyReq)
 				if err := render.DecodeJSON(r, req); err != nil {
 					return nil, err

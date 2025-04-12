@@ -67,7 +67,7 @@ func NewJwtManageCreateAdminJwt(signer secretapi.JwtSigner, verifier secretapi.J
 				ValidateJwtToken(verifier, secretaddon.PermissionResourceList{}.
 					Add(permissions.SecretJwtAdmin)),
 			},
-			BodyParser: func(r io.Reader) (any, error) {
+			BodyParser: func(hr *http.Request, r io.Reader) (any, error) {
 				req := new(jwtAdminReq)
 				if err := render.DecodeJSON(r, req); err != nil {
 					return nil, err
@@ -152,7 +152,7 @@ func NewJwtManageCreateNewJwt(signer secretapi.JwtSigner, verifier secretapi.Jwt
 				ValidateJwtToken(verifier, secretaddon.PermissionResourceList{}.
 					Add(permissions.SecretJwtNew)),
 			},
-			BodyParser: func(r io.Reader) (any, error) {
+			BodyParser: func(hr *http.Request, r io.Reader) (any, error) {
 				req := new(jwtNewReq)
 				if err := render.DecodeJSON(r, req); err != nil {
 					return nil, err
@@ -209,7 +209,7 @@ func NewJwtManageVerifyJwt(verifier secretapi.JwtVerifier) *JwtManageVerifyJwt {
 				ValidateJwtToken(verifier, secretaddon.PermissionResourceList{}.
 					Add(permissions.SecretJwtVerify)),
 			},
-			BodyParser: func(r io.Reader) (any, error) {
+			BodyParser: func(hr *http.Request, r io.Reader) (any, error) {
 				req := new(jwtVerifyReq)
 				if err := render.DecodeJSON(r, req); err != nil {
 					return nil, err

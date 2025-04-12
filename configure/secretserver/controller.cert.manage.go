@@ -216,7 +216,7 @@ func NewCertManageCreateCert(verifier secretapi.JwtVerifier, keyStorage secretap
 				ValidateJwtToken(verifier, secretaddon.PermissionResourceList{}.
 					Add(permissions.SecretCertAdmin)),
 			},
-			BodyParser: func(r io.Reader) (any, error) {
+			BodyParser: func(hr *http.Request, r io.Reader) (any, error) {
 				req := new(createCertReq)
 				if err := render.DecodeJSON(r, req); err != nil {
 					return nil, err
@@ -328,7 +328,7 @@ func NewCertManageCreateCertReq(verifier secretapi.JwtVerifier, keyStorage secre
 				ValidateJwtToken(verifier, secretaddon.PermissionResourceList{}.
 					Add(permissions.SecretCertAdmin)),
 			},
-			BodyParser: func(r io.Reader) (any, error) {
+			BodyParser: func(hr *http.Request, r io.Reader) (any, error) {
 				req := new(createCertReqReq)
 				if err := render.DecodeJSON(r, req); err != nil {
 					return nil, err
@@ -427,7 +427,7 @@ func NewCertManageGetCert(verifier secretapi.JwtVerifier, keyStorage secretapi.K
 				ValidateJwtToken(verifier, secretaddon.PermissionResourceList{}.
 					Add(permissions.SecretCertAdmin)),
 			},
-			BodyParser: func(r io.Reader) (any, error) {
+			BodyParser: func(hr *http.Request, r io.Reader) (any, error) {
 				req := new(createCertReqReq)
 				if err := render.DecodeJSON(r, req); err != nil {
 					return nil, err
