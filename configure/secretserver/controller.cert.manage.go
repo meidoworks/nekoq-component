@@ -62,6 +62,7 @@ func (c *CertManageCreateCert) HandleHttp(w http.ResponseWriter, r *http.Request
 
 	// check and prepare cert key by key id
 	var certKeyLevel = secretapi.CertKeyLevelExternal
+	var keyId string
 	if req.KeyId != "" {
 		keyIdNum, err := strconv.ParseInt(req.KeyId, 10, 64)
 		if err != nil {
@@ -74,8 +75,10 @@ func (c *CertManageCreateCert) HandleHttp(w http.ResponseWriter, r *http.Request
 		switch t {
 		case secretapi.KeyRSA1024, secretapi.KeyRSA2048, secretapi.KeyRSA3072, secretapi.KeyRSA4096:
 			certKeyLevel = secretapi.CertKeyLevelLevel2Custom
+			keyId = req.KeyId
 		case secretapi.KeyECDSA224, secretapi.KeyECDSA256, secretapi.KeyECDSA384, secretapi.KeyECDSA521:
 			certKeyLevel = secretapi.CertKeyLevelLevel2Custom
+			keyId = req.KeyId
 		default:
 			return chi2.NewErrRender(errors.New("unsupported key type"))
 		}
@@ -199,6 +202,7 @@ func (c *CertManageCreateCert) HandleHttp(w http.ResponseWriter, r *http.Request
 	//   + support managed private key
 	if _, err := c.cert.SaveCert(certName, caCertSnNum, newCert, secretapi.CertKeyInfo{
 		CertKeyLevel: certKeyLevel,
+		CertKeyId:    keyId,
 	}); err != nil {
 		return chi2.NewErrRender(err)
 	}
