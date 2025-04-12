@@ -38,7 +38,9 @@ type createCertReq struct {
 	CertName    string `json:"cert_name"`
 	CertReqData string `json:"cert_req_data"`
 	CertUsage   string `json:"cert_usage"` // available: server/client/both
-	//FIXME support managed private key
+
+	// support managed private key
+	KeyId string `json:"key_id"`
 }
 
 func (c *CertManageCreateCert) HandleHttp(w http.ResponseWriter, r *http.Request) chi2.Render {
@@ -57,6 +59,27 @@ func (c *CertManageCreateCert) HandleHttp(w http.ResponseWriter, r *http.Request
 		return chi2.NewStatusRender(http.StatusBadRequest)
 	}
 	pemtool := new(secretapi.PemTool)
+
+	// check and prepare cert key by key id
+	var certKeyLevel = secretapi.CertKeyLevelExternal
+	if req.KeyId != "" {
+		keyIdNum, err := strconv.ParseInt(req.KeyId, 10, 64)
+		if err != nil {
+			return chi2.NewStatusRender(http.StatusBadRequest)
+		}
+		t, _, err := c.keyStorage.LoadL2DataKeyById(keyIdNum)
+		if err != nil {
+			return chi2.NewErrRender(err)
+		}
+		switch t {
+		case secretapi.KeyRSA1024, secretapi.KeyRSA2048, secretapi.KeyRSA3072, secretapi.KeyRSA4096:
+			certKeyLevel = secretapi.CertKeyLevelLevel2Custom
+		case secretapi.KeyECDSA224, secretapi.KeyECDSA256, secretapi.KeyECDSA384, secretapi.KeyECDSA521:
+			certKeyLevel = secretapi.CertKeyLevelLevel2Custom
+		default:
+			return chi2.NewErrRender(errors.New("unsupported key type"))
+		}
+	}
 
 	// prepare cert request
 	certReq, err := new(secretapi.PemTool).ParseCertificateRequest([]byte(certReqData))
@@ -120,6 +143,7 @@ func (c *CertManageCreateCert) HandleHttp(w http.ResponseWriter, r *http.Request
 		return chi2.NewErrRender(errors.New("unsupported cert key level"))
 	}
 
+	// retrieve ca chain
 	var caCertSnNum secretapi.CertSerialNumber
 	caCertSnNum.FromBigInt(caCert.SerialNumber)
 	caCerts, err := c.recursiveRetrieveCerts(caCert, caCertSnNum)
@@ -172,9 +196,9 @@ func (c *CertManageCreateCert) HandleHttp(w http.ResponseWriter, r *http.Request
 	}
 
 	// save cert
-	//FIXME support managed private key
+	//   + support managed private key
 	if _, err := c.cert.SaveCert(certName, caCertSnNum, newCert, secretapi.CertKeyInfo{
-		CertKeyLevel: secretapi.CertKeyLevelExternal,
+		CertKeyLevel: certKeyLevel,
 	}); err != nil {
 		return chi2.NewErrRender(err)
 	}
