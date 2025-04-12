@@ -206,7 +206,6 @@ func NewKeyManageGetKeyById(verifier secretapi.JwtVerifier, keyStorage secretapi
 				middleware.Recoverer,
 			},
 			RequestValidators: chi2.RequestValidators{
-				chi2.AllowContentTypeFor("application/json"),
 				ValidateJwtToken(verifier, secretaddon.PermissionResourceList{}.
 					Add(permissions.SecretKeyAdmin)),
 			},
