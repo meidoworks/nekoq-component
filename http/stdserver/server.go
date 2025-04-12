@@ -129,6 +129,7 @@ func StartStdHttpTlsServer(req *StdHttpTlsServerReq) (*StdHttpTlsServer, error) 
 	result.srv = server
 
 	go func() {
+		// since the cert and key files are loaded separately, here empty strings are used
 		if err := result.srv.ServeTLS(ln, "", ""); err != nil {
 			if !errors.Is(err, http.ErrServerClosed) {
 				panic(err)

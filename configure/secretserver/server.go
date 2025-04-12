@@ -32,6 +32,10 @@ type SecretServerReq struct {
 	JwtVerifier secretapi.JwtVerifier
 	KeyStorage  secretapi.KeyStorage
 	CertStorage secretapi.CertStorage
+
+	DebugOpt struct {
+		PrintRegisteredAPIs bool
+	}
 }
 
 type SecretServer struct {
@@ -78,6 +82,9 @@ func initWriteApis(r *chi.Mux, req *SecretServerReq) error {
 		NewKeyManageGenerateNewKey(req.JwtVerifier, req.KeyStorage),
 		NewKeyManageGetKeyById(req.JwtVerifier, req.KeyStorage)); err != nil {
 		return err
+	}
+	if req.DebugOpt.PrintRegisteredAPIs {
+		stub.LogAllControllers()
 	}
 	stub.BuildFor(r)
 

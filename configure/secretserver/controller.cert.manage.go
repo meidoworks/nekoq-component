@@ -36,7 +36,7 @@ type createCertReq struct {
 	TTL         int    `json:"ttl"`
 	CertName    string `json:"cert_name"`
 	CertReqData string `json:"cert_req_data"`
-	CertUsage   string `json:"cert_usage"`
+	CertUsage   string `json:"cert_usage"` // available: server/client/both
 	//FIXME support managed private key
 }
 
@@ -52,7 +52,7 @@ func (c *CertManageCreateCert) HandleHttp(w http.ResponseWriter, r *http.Request
 	if certName == "" || certReqData == "" || caName == "" {
 		return chi2.NewStatusRender(http.StatusBadRequest)
 	}
-	if req.CertUsage != "server" && req.CertUsage != "client" {
+	if req.CertUsage != "server" && req.CertUsage != "client" && req.CertUsage != "both" {
 		return chi2.NewStatusRender(http.StatusBadRequest)
 	}
 	pemtool := new(secretapi.PemTool)
@@ -151,6 +151,8 @@ func (c *CertManageCreateCert) HandleHttp(w http.ResponseWriter, r *http.Request
 		tool.SetupDefaultServerCertKeyUsage()
 	case "client":
 		tool.SetupDefaultClientCertKeyUsage()
+	case "both":
+		tool.SetupDefaultBothCertKeyUsage()
 	default:
 		return chi2.NewErrRender(errors.New("unsupported cert usage"))
 	}
