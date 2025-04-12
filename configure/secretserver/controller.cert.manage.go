@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -249,6 +250,7 @@ type createCertReqReq struct {
 	StreetAddress  string   `json:"street_address"`
 	PostalCode     string   `json:"postal_code"`
 	DNSNames       []string `json:"dns_names"`
+	IPAddresses    []string `json:"ip_addresses"`
 	EmailAddresses []string `json:"email_addresses"`
 }
 
@@ -260,6 +262,15 @@ func (c *CertManageCreateCertReq) HandleHttp(w http.ResponseWriter, r *http.Requ
 	req := obj.(*createCertReqReq)
 	if req.KeyName == "" {
 		return chi2.NewStatusRender(http.StatusBadRequest)
+	}
+
+	var ipAddresses []net.IP
+	for _, ip := range req.IPAddresses {
+		ipNum := net.ParseIP(ip)
+		if ipNum == nil {
+			return chi2.NewStatusRender(http.StatusBadRequest)
+		}
+		ipAddresses = append(ipAddresses, ipNum)
 	}
 
 	keyId, keyType, key, err := c.keyStorage.FetchL2DataKey(req.KeyName)
@@ -295,7 +306,7 @@ func (c *CertManageCreateCertReq) HandleHttp(w http.ResponseWriter, r *http.Requ
 		PostalCode:     req.PostalCode,
 		DNSNames:       req.DNSNames,
 		EmailAddresses: req.EmailAddresses,
-		IPAddresses:    nil, //FIXME support ip addresses field
+		IPAddresses:    ipAddresses,
 		URLs:           nil, //FIXME support URLs field
 	}, &secretapi.CertKeyPair{
 		PrivateKey: signer,
