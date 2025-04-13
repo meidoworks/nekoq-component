@@ -95,6 +95,7 @@ func (c Controller) HandleHttp(w http.ResponseWriter, r *http.Request) Render {
 }
 
 func (c Controller) HandleModel(model any, w http.ResponseWriter, r *http.Request) Render {
+	//FIXME this CAN NOT be overwritten when embedded in concrete controller
 	panic("implement me")
 }
 

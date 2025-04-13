@@ -2,6 +2,7 @@ package secretserver
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -27,8 +28,8 @@ type KeyManageGenerateNewKey struct {
 }
 
 type newKeyReq struct {
-	Type           string `json:"type"`             // RSA, ECDSA
-	KeyScale       string `json:"key_scale"`        // RSA:1024,2048,3072,4096  ECDSA:224,256,384,521
+	Type           string `json:"type"`             // RSA, ECDSA, AES
+	KeyScale       string `json:"key_scale"`        // RSA:1024,2048,3072,4096  ECDSA:224,256,384,521  AES: 128,192,256
 	EncryptKeyName string `json:"encrypt_key_name"` // Should be Level1 key
 }
 
@@ -53,6 +54,12 @@ func (k *KeyManageGenerateNewKey) HandleHttp(w http.ResponseWriter, r *http.Requ
 	case "ECDSA":
 		switch req.KeyScale {
 		case "224", "256", "384", "521":
+		default:
+			return chi2.NewStatusRender(http.StatusBadRequest)
+		}
+	case "AES":
+		switch req.KeyScale {
+		case "128", "192", "256":
 		default:
 			return chi2.NewStatusRender(http.StatusBadRequest)
 		}
@@ -102,6 +109,36 @@ func (k *KeyManageGenerateNewKey) HandleHttp(w http.ResponseWriter, r *http.Requ
 		} else {
 			key = k
 			kt = keyType
+		}
+	case "AES":
+		var keyType secretapi.KeyType
+		switch req.KeyScale {
+		case "128":
+			keyType = secretapi.KeyAES128
+			if k, err := secretapi.DefaultKeyGen.Aes128(); err != nil {
+				return chi2.NewErrRender(err)
+			} else {
+				key = k
+				kt = keyType
+			}
+		case "192":
+			keyType = secretapi.KeyAES192
+			if k, err := secretapi.DefaultKeyGen.Aes192(); err != nil {
+				return chi2.NewErrRender(err)
+			} else {
+				key = k
+				kt = keyType
+			}
+		case "256":
+			keyType = secretapi.KeyAES256
+			if k, err := secretapi.DefaultKeyGen.Aes256(); err != nil {
+				return chi2.NewErrRender(err)
+			} else {
+				key = k
+				kt = keyType
+			}
+		default:
+			panic(errors.New("unsupported key type"))
 		}
 	default:
 		panic(errors.New("unsupported key type"))
@@ -215,6 +252,77 @@ func NewKeyManageGetKeyById(verifier secretapi.JwtVerifier, keyStorage secretapi
 					return nil, err
 				}
 				return req, nil
+			},
+		},
+		keyStorage: keyStorage,
+	}
+}
+
+// KeyManageGetKeyByName retrieves level2 key by key name
+type KeyManageGetKeyByName struct {
+	chi2.Controller
+	Method string `method:"GET"`
+	URL    string `url:"/api/v1/secret/key/name/{key_name}"`
+
+	keyStorage secretapi.KeyStorage
+}
+
+func (k *KeyManageGetKeyByName) HandleHttp(w http.ResponseWriter, r *http.Request) chi2.Render {
+	keyName := strings.TrimSpace(chi.URLParam(r, "key_name"))
+	if keyName == "" {
+		return chi2.NewStatusRender(http.StatusBadRequest)
+	}
+	keyId, kt, key, err := k.keyStorage.FetchL2DataKey(keyName)
+	if err != nil {
+		return chi2.NewErrRender(err)
+	}
+	var keyTypeSeries string
+	var format = "unknown"
+	switch kt {
+	case secretapi.KeyKeySet:
+		keyTypeSeries = "keyset"
+		format = "pem"
+	case secretapi.KeyAES128, secretapi.KeyAES192, secretapi.KeyAES256:
+		keyTypeSeries = "aes"
+		format = "raw"
+	case secretapi.KeyRSA1024, secretapi.KeyRSA2048, secretapi.KeyRSA3072, secretapi.KeyRSA4096:
+		keyTypeSeries = "rsa"
+		format = "pem"
+	case secretapi.KeyECDSA224, secretapi.KeyECDSA256, secretapi.KeyECDSA384, secretapi.KeyECDSA521:
+		keyTypeSeries = "ecdsa"
+		format = "pem"
+	case secretapi.KeyEd25519:
+		keyTypeSeries = "ed25519" //FIXME note: ed25519 key may not be independently stored
+		format = "raw"
+	case secretapi.KeyGeneral64B, secretapi.KeyGeneral128B:
+		keyTypeSeries = "general"
+		format = "raw"
+	default:
+		return chi2.NewErrRender(errors.New("unsupported key type"))
+	}
+
+	return chi2.NewJsonOkRender(map[string]interface{}{
+		"key_id":   fmt.Sprint(keyId),
+		"key_type": keyTypeSeries,
+		"key":      key,
+		"format":   format,
+	})
+}
+
+func NewKeyManageGetKeyByName(verifier secretapi.JwtVerifier, keyStorage secretapi.KeyStorage) *KeyManageGetKeyByName {
+	return &KeyManageGetKeyByName{
+		Controller: chi2.Controller{
+			Middlewares: chi2.Middlewares{
+				middleware.Logger,
+				middleware.RealIP,
+				middleware.Recoverer,
+			},
+			RequestValidators: chi2.RequestValidators{
+				ValidateJwtToken(verifier, secretaddon.PermissionResourceList{}.
+					Add(permissions.SecretKeyAdmin)),
+			},
+			BodyParser: func(hr *http.Request, r io.Reader) (any, error) {
+				return nil, nil
 			},
 		},
 		keyStorage: keyStorage,

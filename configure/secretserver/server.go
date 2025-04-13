@@ -80,7 +80,8 @@ func initWriteApis(r *chi.Mux, req *SecretServerReq) error {
 	}
 	if err := stub.RegisterControllers(
 		NewKeyManageGenerateNewKey(req.JwtVerifier, req.KeyStorage),
-		NewKeyManageGetKeyById(req.JwtVerifier, req.KeyStorage)); err != nil {
+		NewKeyManageGetKeyById(req.JwtVerifier, req.KeyStorage),
+		NewKeyManageGetKeyByName(req.JwtVerifier, req.KeyStorage)); err != nil {
 		return err
 	}
 	if req.DebugOpt.PrintRegisteredAPIs {
