@@ -1,6 +1,8 @@
 package generalclient
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"encoding/json"
 	"fmt"
 )
@@ -10,6 +12,13 @@ type GetKeyResult struct {
 	KeyType string `json:"key_type"`
 	Key     []byte `json:"key"`
 	Format  string `json:"format"`
+}
+
+func (g *GetKeyResult) AesCipher() (cipher.Block, error) {
+	if g.KeyType != "aes" {
+		return nil, fmt.Errorf("unsupported key type: %s", g.KeyType)
+	}
+	return aes.NewCipher(g.Key)
 }
 
 func (g *GeneralClient) GetKeyByName(name string) (GetKeyResult, error) {
