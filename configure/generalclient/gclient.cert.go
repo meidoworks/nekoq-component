@@ -20,7 +20,7 @@ type SecretResponse struct {
 	Body       []byte
 }
 
-func (c *GeneralClient) DoSecretJson(baseUrl string, req SecretRequest) (*SecretResponse, error) {
+func (g *GeneralClient) DoSecretJson(baseUrl string, req SecretRequest) (*SecretResponse, error) {
 	var bodyReader io.Reader
 	if req.Body != nil {
 		bodyBytes, err := json.Marshal(req.Body)
@@ -42,7 +42,7 @@ func (c *GeneralClient) DoSecretJson(baseUrl string, req SecretRequest) (*Secret
 	}
 
 	// Perform the HTTP request
-	resp, err := c.secretHttpClient.Do(httpReq)
+	resp, err := g.secretHttpClient.Do(httpReq)
 	if err != nil {
 		return nil, err
 	}

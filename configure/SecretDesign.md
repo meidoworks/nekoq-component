@@ -28,9 +28,10 @@
     * Integrated encryption: encrypted data contains key information maintained by secret
     * Raw encryption: encrypted data is raw output of ciphers
 * Key permission management
-* Support cipher operations
+* [x] Support cipher operations
     * Encryption / Decryption
     * Sign / Verify
+    * Use the keys after retrieving
 * [x] Addon => Jwt token
     * Algorithms: HS256/HS384/HS512, RS256/RS384/RS512, ES256/ES384/ES512, PS256/PS384/RS512
     * 64B key - HS256
@@ -52,7 +53,8 @@
     * SSL/TLS with client side cert supporting and 3rd party software including go http server, nginx, apache, etc.
     * SSH
     * Email
-* Custom cert signature algorithm
+* [x] Custom cert signature algorithm
+    * Based on CA cert: now supporting RSA and ECDSA
 * Support encrypted unseal local key file for security
 * Support expire time in related use cases
 * Support post-quantum cryptography
