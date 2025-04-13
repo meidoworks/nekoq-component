@@ -150,6 +150,8 @@ type KeyGen interface {
 	GenerateVitalKeySet() (*KeySet, error)
 
 	Aes128() ([]byte, error)
+	Aes192() ([]byte, error)
+	Aes256() ([]byte, error)
 
 	General64B() ([]byte, error)
 	General128B() ([]byte, error)
@@ -224,7 +226,19 @@ func (g GeneralKeyGen) General128B() ([]byte, error) {
 }
 
 func (g GeneralKeyGen) Aes128() ([]byte, error) {
-	buf := make([]byte, 128/8)
+	return g.genAes(128)
+}
+
+func (g GeneralKeyGen) Aes192() ([]byte, error) {
+	return g.genAes(192)
+}
+
+func (g GeneralKeyGen) Aes256() ([]byte, error) {
+	return g.genAes(256)
+}
+
+func (g GeneralKeyGen) genAes(size int) ([]byte, error) {
+	buf := make([]byte, size/8)
 	if n, err := rand.Read(buf); err != nil {
 		return nil, err
 	} else if n != len(buf) {
